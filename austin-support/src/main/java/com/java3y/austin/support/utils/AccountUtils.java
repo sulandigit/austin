@@ -41,6 +41,20 @@ public class AccountUtils {
     private ChannelAccountDao channelAccountDao;
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private LocalCacheManager localCacheManager;
+    @Autowired
+    private RedisUtils redisUtils;
+
+    /**
+     * 账号缓存的过期时间（秒）- 30分钟
+     */
+    private static final Long ACCOUNT_CACHE_EXPIRE_TIME = 1800L;
+
+    /**
+     * 账号缓存 Key 前缀
+     */
+    private static final String ACCOUNT_CACHE_PREFIX = "account:";
 
     /**
      * 消息的小程序/微信服务号账号
@@ -66,21 +80,74 @@ public class AccountUtils {
     @SuppressWarnings("unchecked")
     public <T> T getAccountById(Integer sendAccountId, Class<T> clazz) {
         try {
+            // 1. 先查询本地缓存
+            String cacheKey = ACCOUNT_CACHE_PREFIX + sendAccountId;
+            Object cachedResult = localCacheManager.get(LocalCacheManager.CACHE_NAME_ACCOUNT, cacheKey);
+            if (cachedResult != null) {
+                log.debug("AccountUtils#getAccount hit local cache! accountId:{}", sendAccountId);
+                return (T) cachedResult;
+            }
+
+            // 2. 查询 Redis 缓存
+            String redisValue = redisUtils.get(cacheKey);
+            if (redisValue != null) {
+                log.debug("AccountUtils#getAccount hit redis cache! accountId:{}", sendAccountId);
+                T result = parseAccountFromRedis(redisValue, clazz);
+                // 回写本地缓存
+                if (result != null) {
+                    localCacheManager.put(LocalCacheManager.CACHE_NAME_ACCOUNT, cacheKey, result);
+                }
+                return result;
+            }
+
+            // 3. 缓存未命中，查询数据库
             Optional<ChannelAccount> optionalChannelAccount = channelAccountDao.findById(Long.valueOf(sendAccountId));
             if (optionalChannelAccount.isPresent()) {
                 ChannelAccount channelAccount = optionalChannelAccount.get();
-                if (clazz.equals(WxMaService.class)) {
-                    return (T) ConcurrentHashMapUtils.computeIfAbsent(miniProgramServiceMap, channelAccount, account -> initMiniProgramService(JSON.parseObject(account.getAccountConfig(), WeChatMiniProgramAccount.class)));
-                } else if (clazz.equals(WxMpService.class)) {
-                    return (T) ConcurrentHashMapUtils.computeIfAbsent(officialAccountServiceMap, channelAccount, account -> initOfficialAccountService(JSON.parseObject(account.getAccountConfig(), WeChatOfficialAccount.class)));
-                } else {
-                    return JSON.parseObject(channelAccount.getAccountConfig(), clazz);
+                T result = buildAccountService(channelAccount, clazz);
+                
+                if (result != null) {
+                    // 写入 Redis 缓存（带随机过期时间）
+                    redisUtils.setWithRandomExpire(cacheKey, JSON.toJSONString(channelAccount), ACCOUNT_CACHE_EXPIRE_TIME);
+                    // 写入本地缓存
+                    localCacheManager.put(LocalCacheManager.CACHE_NAME_ACCOUNT, cacheKey, result);
                 }
+                return result;
             }
         } catch (Exception e) {
             log.error("AccountUtils#getAccount fail! e:{}", Throwables.getStackTraceAsString(e));
         }
         return null;
+    }
+
+    /**
+     * 从 Redis 缓存解析账号对象
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T parseAccountFromRedis(String redisValue, Class<T> clazz) {
+        try {
+            ChannelAccount channelAccount = JSON.parseObject(redisValue, ChannelAccount.class);
+            return buildAccountService(channelAccount, clazz);
+        } catch (Exception e) {
+            log.error("AccountUtils#parseAccountFromRedis fail! e:{}", Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    /**
+     * 构建账号服务对象
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T buildAccountService(ChannelAccount channelAccount, Class<T> clazz) {
+        if (clazz.equals(WxMaService.class)) {
+            return (T) ConcurrentHashMapUtils.computeIfAbsent(miniProgramServiceMap, channelAccount, 
+                    account -> initMiniProgramService(JSON.parseObject(account.getAccountConfig(), WeChatMiniProgramAccount.class)));
+        } else if (clazz.equals(WxMpService.class)) {
+            return (T) ConcurrentHashMapUtils.computeIfAbsent(officialAccountServiceMap, channelAccount, 
+                    account -> initOfficialAccountService(JSON.parseObject(account.getAccountConfig(), WeChatOfficialAccount.class)));
+        } else {
+            return JSON.parseObject(channelAccount.getAccountConfig(), clazz);
+        }
     }
 
     /**
