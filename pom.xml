@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.6</version>
+        <version>2.7.18</version>
         <relativePath/>
     </parent>
 
@@ -42,31 +42,31 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!--依赖库版本-->
-        <mysql-connector-java.version>5.1.35</mysql-connector-java.version>
-        <hutool-all.version>5.7.15</hutool-all.version>
-        <guava.version>31.0.1-jre</guava.version>
-        <okhttp.version>4.9.2</okhttp.version>
+        <mysql-connector-java.version>8.0.33</mysql-connector-java.version>
+        <hutool-all.version>5.8.25</hutool-all.version>
+        <guava.version>33.0.0-jre</guava.version>
+        <okhttp.version>4.12.0</okhttp.version>
         <fastjson.version>1.2.83</fastjson.version>
-        <tencentcloud-sdk-java.version>3.1.510</tencentcloud-sdk-java.version>
+        <tencentcloud-sdk-java.version>3.1.1030</tencentcloud-sdk-java.version>
         <nacos-config-spring-boot-starter.version>0.2.12</nacos-config-spring-boot-starter.version>
-        <apollo-client.version>2.1.0</apollo-client.version>
+        <apollo-client.version>2.3.0</apollo-client.version>
         <log-record-starter.version>1.0.4.1</log-record-starter.version>
         <javax.mail.version>1.6.2</javax.mail.version>
         <springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>
-        <logback-gelf.version>3.0.0</logback-gelf.version>
-        <xxl-job-core.version>2.3.0</xxl-job-core.version>
+        <logback-gelf.version>4.0.2</logback-gelf.version>
+        <xxl-job-core.version>2.4.1</xxl-job-core.version>
         <scala.binary.version>2.11</scala.binary.version>
-        <flink.version>1.14.3</flink.version>
-        <flink-connector-hive_2.12.version>1.16.0</flink-connector-hive_2.12.version>
-        <flink-table-api-java-bridge.version>1.16.0</flink-table-api-java-bridge.version>
-        <hive-exec.version>2.3.4</hive-exec.version>
-        <weixin-java>4.5.3.B</weixin-java>
-        <dynamic-tp-spring-boot-starter-apollo.version>1.0.2</dynamic-tp-spring-boot-starter-apollo.version>
-        <alipay-sdk-java.version>4.39.19.ALL</alipay-sdk-java.version>
+        <flink.version>1.14.6</flink.version>
+        <flink-connector-hive_2.12.version>1.16.3</flink-connector-hive_2.12.version>
+        <flink-table-api-java-bridge.version>1.16.3</flink-table-api-java-bridge.version>
+        <hive-exec.version>2.3.9</hive-exec.version>
+        <weixin-java>4.6.0</weixin-java>
+        <dynamic-tp-spring-boot-starter-apollo.version>1.1.7.2</dynamic-tp-spring-boot-starter-apollo.version>
+        <alipay-sdk-java.version>4.39.218.ALL</alipay-sdk-java.version>
         <alibaba-dingtalk-service-sdk.version>2.0.0</alibaba-dingtalk-service-sdk.version>
-        <rocketmq-spring-boot-starter.version>2.2.2</rocketmq-spring-boot-starter.version>
+        <rocketmq-spring-boot-starter.version>2.2.3</rocketmq-spring-boot-starter.version>
         <hades-nacos-starter.version>1.0.4</hades-nacos-starter.version>
-        <spring-boot-configuration-processor.version>2.5.6</spring-boot-configuration-processor.version>
+        <spring-boot-configuration-processor.version>2.7.18</spring-boot-configuration-processor.version>
     </properties>
 
     <dependencyManagement>
