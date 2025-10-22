@@ -38,11 +38,25 @@ public class AccessTokenUtils {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private DistributedLockUtil distributedLockUtil;
+    @Autowired
+    private RedisUtils redisUtils;
+
+    /**
+     * 空值缓存过期时间（秒）- 5分钟
+     */
+    private static final Long NULL_CACHE_EXPIRE_TIME = 300L;
+
+    /**
+     * 空值标记
+     */
+    private static final String NULL_VALUE_MARKER = "NULL";
 
     /**
      * 获取 对应渠道的accessToken
-     * 1，redis存在，则直接从redis取
-     * 2，redis不存在，调用底层方法去获取accessToken，并加入到redis中
+     * 1，redis存在，则直接从 redis 取
+     * 2，redis不存在，使用分布式锁，调用底层方法去获取 accessToken，并加入到 redis 中
      *
      * @param sendChannel
      * @param accountId   账号Id（数据库的主键）
@@ -57,26 +71,94 @@ public class AccessTokenUtils {
         // expireTime跟渠道的accessToken失效有关（个推accessToken默认有效是1天，钉钉工作消息默认有效是2小时）
         String accessTokenPrefix = EnumUtil.getEnumByCode(sendChannel, ChannelType.class).getAccessTokenPrefix();
         Long expireTime = EnumUtil.getEnumByCode(sendChannel, ChannelType.class).getAccessTokenExpire();
+        String cacheKey = accessTokenPrefix + accountId;
 
         try {
-            resultToken = redisTemplate.opsForValue().get(accessTokenPrefix + accountId);
-            if (CharSequenceUtil.isNotBlank(resultToken) && Boolean.FALSE.equals(refresh)) {
+            // 强制刷新，直接查询
+            if (Boolean.TRUE.equals(refresh)) {
+                return refreshAccessToken(sendChannel, accountId, account, cacheKey, expireTime);
+            }
+
+            // 1. 查询缓存
+            resultToken = redisUtils.get(cacheKey);
+            
+            // 2. 命中空值缓存，直接返回空
+            if (NULL_VALUE_MARKER.equals(resultToken)) {
+                log.warn("AccessTokenUtils#getAccessToken hit null cache! sendChannel:{}, accountId:{}", 
+                        sendChannel, accountId);
+                return "";
+            }
+            
+            // 3. 命中正常缓存，直接返回
+            if (CharSequenceUtil.isNotBlank(resultToken)) {
                 return resultToken;
             }
-            if (ChannelType.DING_DING_WORK_NOTICE.getCode().equals(sendChannel)) {
-                resultToken = getDingDingAccessToken(account);
-            } else if (ChannelType.PUSH.getCode().equals(sendChannel)) {
-                resultToken = getGeTuiAccessToken(account);
-            }
-            if (Objects.nonNull(resultToken) && CharSequenceUtil.isNotBlank(resultToken)) {
 
-                redisTemplate.opsForValue().set(accessTokenPrefix + accountId, resultToken, expireTime, TimeUnit.SECONDS);
+            // 4. 缓存未命中，使用分布式锁防止击穿
+            String lockKey = "access_token:" + sendChannel + ":" + accountId;
+            resultToken = distributedLockUtil.executeWithLock(lockKey, () -> {
+                // 双重检查：获取锁后再次查询缓存
+                String cachedToken = redisUtils.get(cacheKey);
+                if (CharSequenceUtil.isNotBlank(cachedToken) && !NULL_VALUE_MARKER.equals(cachedToken)) {
+                    return cachedToken;
+                }
+
+                // 查询第三方接口获取 token
+                String token = fetchAccessTokenFromProvider(sendChannel, account);
+                
+                if (Objects.nonNull(token) && CharSequenceUtil.isNotBlank(token)) {
+                    // 写入缓存（带随机过期时间）
+                    redisUtils.setWithRandomExpire(cacheKey, token, expireTime);
+                } else {
+                    // 空值缓存，防止穿透
+                    redisTemplate.opsForValue().set(cacheKey, NULL_VALUE_MARKER, NULL_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+                    log.warn("AccessTokenUtils#getAccessToken fetch token fail, cache null! sendChannel:{}, accountId:{}", 
+                            sendChannel, accountId);
+                }
+                return token;
+            });
+
+            // 如果获取锁失败，再次尝试查询缓存
+            if (resultToken == null) {
+                resultToken = redisUtils.get(cacheKey);
+                if (NULL_VALUE_MARKER.equals(resultToken)) {
+                    resultToken = "";
+                }
             }
         } catch (Exception e) {
-            log.error("AccessTokenUtils#getAccessToken fail,sendChannel:[{}],accountId:[{}],error mgs:{}", sendChannel, accountId, Throwables.getStackTraceAsString(e));
+            log.error("AccessTokenUtils#getAccessToken fail,sendChannel:[{}],accountId:[{}],error mgs:{}", 
+                    sendChannel, accountId, Throwables.getStackTraceAsString(e));
         }
-        return resultToken;
+        return resultToken != null ? resultToken : "";
+    }
 
+    /**
+     * 刷新 access token
+     */
+    private String refreshAccessToken(Integer sendChannel, Integer accountId, Object account, 
+                                       String cacheKey, Long expireTime) {
+        // 删除旧缓存
+        redisUtils.delete(cacheKey);
+        
+        // 查询新 token
+        String token = fetchAccessTokenFromProvider(sendChannel, account);
+        
+        if (Objects.nonNull(token) && CharSequenceUtil.isNotBlank(token)) {
+            redisUtils.setWithRandomExpire(cacheKey, token, expireTime);
+        }
+        return token;
+    }
+
+    /**
+     * 从第三方提供商获取 access token
+     */
+    private String fetchAccessTokenFromProvider(Integer sendChannel, Object account) {
+        if (ChannelType.DING_DING_WORK_NOTICE.getCode().equals(sendChannel)) {
+            return getDingDingAccessToken(account);
+        } else if (ChannelType.PUSH.getCode().equals(sendChannel)) {
+            return getGeTuiAccessToken(account);
+        }
+        return "";
     }
 
     /**

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author 3y
@@ -183,6 +185,99 @@ public class RedisUtils {
             log.error("redis execLimitLua fail! e:{}", Throwables.getStackTraceAsString(e));
         }
         return false;
+    }
+
+    /**
+     * 设置缓存，带随机过期时间（防止缓存雪崩）
+     *
+     * @param key            缓存key
+     * @param value          缓存值
+     * @param baseExpireTime 基准过期时间（秒）
+     */
+    public void setWithRandomExpire(String key, String value, Long baseExpireTime) {
+        try {
+            // 计算随机过期时间：基准时间 + [0, 20%] 的随机偏移
+            long randomOffset = (long) (baseExpireTime * ThreadLocalRandom.current().nextDouble(0, 0.2));
+            long actualExpireTime = baseExpireTime + randomOffset;
+            
+            redisTemplate.opsForValue().set(key, value, actualExpireTime, TimeUnit.SECONDS);
+            log.debug("RedisUtils#setWithRandomExpire key:{}, baseExpire:{}s, actualExpire:{}s", 
+                    key, baseExpireTime, actualExpireTime);
+        } catch (Exception e) {
+            log.error("RedisUtils#setWithRandomExpire fail! key:{}, e:{}", key, Throwables.getStackTraceAsString(e));
+        }
+    }
+
+    /**
+     * 批量设置缓存，带随机过期时间（防止缓存雪崩）
+     *
+     * @param keyValues      key-value 映射
+     * @param baseExpireTime 基准过期时间（秒）
+     */
+    public void pipelineSetWithRandomExpire(Map<String, String> keyValues, Long baseExpireTime) {
+        try {
+            redisTemplate.executePipelined((RedisCallback<String>) connection -> {
+                for (Map.Entry<String, String> entry : keyValues.entrySet()) {
+                    // 每个key都有独立的随机过期时间
+                    long randomOffset = (long) (baseExpireTime * ThreadLocalRandom.current().nextDouble(0, 0.2));
+                    long actualExpireTime = baseExpireTime + randomOffset;
+                    
+                    connection.setEx(entry.getKey().getBytes(StandardCharsets.UTF_8), 
+                            actualExpireTime,
+                            entry.getValue().getBytes(StandardCharsets.UTF_8));
+                }
+                return null;
+            });
+            log.debug("RedisUtils#pipelineSetWithRandomExpire count:{}, baseExpire:{}s", 
+                    keyValues.size(), baseExpireTime);
+        } catch (Exception e) {
+            log.error("RedisUtils#pipelineSetWithRandomExpire fail! e:{}", Throwables.getStackTraceAsString(e));
+        }
+    }
+
+    /**
+     * 获取缓存值
+     *
+     * @param key 缓存key
+     * @return 缓存值
+     */
+    public String get(String key) {
+        try {
+            return redisTemplate.opsForValue().get(key);
+        } catch (Exception e) {
+            log.error("RedisUtils#get fail! key:{}, e:{}", key, Throwables.getStackTraceAsString(e));
+            return null;
+        }
+    }
+
+    /**
+     * 删除缓存
+     *
+     * @param key 缓存key
+     * @return 是否删除成功
+     */
+    public Boolean delete(String key) {
+        try {
+            return redisTemplate.delete(key);
+        } catch (Exception e) {
+            log.error("RedisUtils#delete fail! key:{}, e:{}", key, Throwables.getStackTraceAsString(e));
+            return false;
+        }
+    }
+
+    /**
+     * 判断key是否存在
+     *
+     * @param key 缓存key
+     * @return 是否存在
+     */
+    public Boolean hasKey(String key) {
+        try {
+            return redisTemplate.hasKey(key);
+        } catch (Exception e) {
+            log.error("RedisUtils#hasKey fail! key:{}, e:{}", key, Throwables.getStackTraceAsString(e));
+            return false;
+        }
     }
 
 

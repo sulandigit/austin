@@ -18,6 +18,8 @@ import com.java3y.austin.support.dao.MessageTemplateDao;
 import com.java3y.austin.support.dao.SmsRecordDao;
 import com.java3y.austin.support.domain.MessageTemplate;
 import com.java3y.austin.support.domain.SmsRecord;
+import com.java3y.austin.support.utils.BloomFilterManager;
+import com.java3y.austin.support.utils.DistributedLockUtil;
 import com.java3y.austin.support.utils.RedisUtils;
 import com.java3y.austin.support.utils.TaskInfoUtils;
 import com.java3y.austin.web.service.DataService;
@@ -43,6 +45,22 @@ public class DataServiceImpl implements DataService {
 
     @Autowired
     private RedisUtils redisUtils;
+
+    @Autowired
+    private BloomFilterManager bloomFilterManager;
+
+    @Autowired
+    private DistributedLockUtil distributedLockUtil;
+
+    /**
+     * 模板缓存过期时间（秒）- 15分钟
+     */
+    private static final Long TEMPLATE_CACHE_EXPIRE_TIME = 900L;
+
+    /**
+     * 模板缓存 Key 前缀
+     */
+    private static final String TEMPLATE_CACHE_PREFIX = "tpl:";
 
     @Autowired
     private MessageTemplateDao messageTemplateDao;
@@ -80,8 +98,44 @@ public class DataServiceImpl implements DataService {
 
         // 获取businessId并获取模板信息
         businessId = getRealBusinessId(businessId);
-        Optional<MessageTemplate> optional = messageTemplateDao.findById(TaskInfoUtils.getMessageTemplateIdFromBusinessId(Long.valueOf(businessId)));
-        if (!optional.isPresent()) {
+        Long messageTemplateId = TaskInfoUtils.getMessageTemplateIdFromBusinessId(Long.valueOf(businessId));
+        
+        // 1. 布隆过滤器检查
+        if (!bloomFilterManager.mightContain(BloomFilterManager.getTemplateFilter(), String.valueOf(messageTemplateId))) {
+            log.warn("DataServiceImpl#getTraceMessageTemplateInfo bloom filter reject! templateId:{}", messageTemplateId);
+            return null;
+        }
+
+        // 2. 查询缓存
+        String cacheKey = TEMPLATE_CACHE_PREFIX + messageTemplateId;
+        String cachedTemplate = redisUtils.get(cacheKey);
+        MessageTemplate messageTemplate = null;
+        
+        if (cachedTemplate != null) {
+            messageTemplate = JSON.parseObject(cachedTemplate, MessageTemplate.class);
+        } else {
+            // 3. 缓存未命中，使用分布式锁查询数据库
+            String lockKey = "template:" + messageTemplateId;
+            messageTemplate = distributedLockUtil.executeWithLock(lockKey, () -> {
+                // 双重检查
+                String recheck = redisUtils.get(cacheKey);
+                if (recheck != null) {
+                    return JSON.parseObject(recheck, MessageTemplate.class);
+                }
+                
+                // 查询数据库
+                Optional<MessageTemplate> optional = messageTemplateDao.findById(messageTemplateId);
+                if (optional.isPresent()) {
+                    MessageTemplate template = optional.get();
+                    // 写入缓存（带随机过期时间）
+                    redisUtils.setWithRandomExpire(cacheKey, JSON.toJSONString(template), TEMPLATE_CACHE_EXPIRE_TIME);
+                    return template;
+                }
+                return null;
+            });
+        }
+        
+        if (messageTemplate == null) {
             return null;
         }
 
@@ -92,7 +146,7 @@ public class DataServiceImpl implements DataService {
          */
         Map<Object, Object> anchorResult = redisUtils.hGetAll(getRealBusinessId(businessId));
 
-        return Convert4Amis.getEchartsVo(anchorResult, optional.get(), businessId);
+        return Convert4Amis.getEchartsVo(anchorResult, messageTemplate, businessId);
     }
 
     @Override
