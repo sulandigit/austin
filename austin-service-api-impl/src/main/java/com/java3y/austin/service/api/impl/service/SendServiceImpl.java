@@ -28,7 +28,7 @@ import java.util.List;
 public class SendServiceImpl implements SendService {
 
     @Autowired
-    @Qualifier("apiProcessController")
+    @Qualifier("processController")
     private ProcessController processController;
 
     @Override

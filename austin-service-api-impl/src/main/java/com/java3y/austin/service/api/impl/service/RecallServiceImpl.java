@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class RecallServiceImpl implements RecallService {
     @Autowired
-    @Qualifier("apiProcessController")
+    @Qualifier("processController")
     private ProcessController processController;
 
     @Override
