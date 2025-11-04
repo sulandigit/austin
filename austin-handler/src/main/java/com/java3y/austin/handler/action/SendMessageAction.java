@@ -28,8 +28,9 @@ public class SendMessageAction implements BusinessProcess<TaskInfo> {
         if (ChannelType.MINI_PROGRAM.getCode().equals(taskInfo.getSendChannel())
                 || ChannelType.OFFICIAL_ACCOUNT.getCode().equals(taskInfo.getSendChannel())
                 || ChannelType.ALIPAY_MINI_PROGRAM.getCode().equals(taskInfo.getSendChannel())) {
-            TaskInfo taskClone = ObjectUtil.cloneByStream(taskInfo);
+            // 优化：在循环外面克隆一次，在循环内部只修改receiver
             for (String receiver : taskInfo.getReceiver()) {
+                TaskInfo taskClone = ObjectUtil.cloneByStream(taskInfo);
                 taskClone.setReceiver(Sets.newHashSet(receiver));
                 handlerHolder.route(taskInfo.getSendChannel()).doHandler(taskClone);
             }

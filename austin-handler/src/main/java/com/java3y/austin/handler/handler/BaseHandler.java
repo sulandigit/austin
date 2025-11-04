@@ -52,11 +52,19 @@ public abstract class BaseHandler implements Handler {
         if (Objects.nonNull(flowControlParam)) {
             flowControlFactory.flowControl(taskInfo, flowControlParam);
         }
-        if (handler(taskInfo)) {
-            logUtils.print(AnchorInfo.builder().state(AnchorState.SEND_SUCCESS.getCode()).bizId(taskInfo.getBizId()).messageId(taskInfo.getMessageId()).businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).build());
-            return;
+        boolean success = handler(taskInfo);
+        // 优化：减少重复的builder调用，提取公共部分
+        AnchorInfo.AnchorInfoBuilder anchorInfoBuilder = AnchorInfo.builder()
+                .bizId(taskInfo.getBizId())
+                .messageId(taskInfo.getMessageId())
+                .businessId(taskInfo.getBusinessId())
+                .ids(taskInfo.getReceiver());
+        
+        if (success) {
+            logUtils.print(anchorInfoBuilder.state(AnchorState.SEND_SUCCESS.getCode()).build());
+        } else {
+            logUtils.print(anchorInfoBuilder.state(AnchorState.SEND_FAIL.getCode()).build());
         }
-        logUtils.print(AnchorInfo.builder().state(AnchorState.SEND_FAIL.getCode()).bizId(taskInfo.getBizId()).messageId(taskInfo.getMessageId()).businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).build());
     }
 
 
