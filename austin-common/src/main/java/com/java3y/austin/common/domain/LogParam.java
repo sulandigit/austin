@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * Log parameters
  * 日志参数
  *
  * @author 3y
@@ -17,16 +18,19 @@ import lombok.NoArgsConstructor;
 public class LogParam {
 
     /**
+     * Log object to be recorded
      * 需要记录的日志
      */
     private Object object;
 
     /**
+     * Business type identifier for the log
      * 标识日志的业务
      */
     private String bizType;
 
     /**
+     * Generation timestamp
      * 生成时间
      */
     private long timestamp;

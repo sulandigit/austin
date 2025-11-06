@@ -24,19 +24,23 @@ public class CommonConstant {
     public static final String NO = "N";
     public static final char QM = '?';
     /**
+     * Boolean conversion
      * boolean转换
      */
     public static final Integer TRUE = 1;
     public static final Integer FALSE = 0;
     /**
+     * Encryption algorithm
      * 加密算法
      */
     public static final String HMAC_SHA256_ENCRYPTION_ALGO = "HmacSHA256";
     /**
+     * Encoding format
      * 编码格式
      */
     public static final String CHARSET_UTF_8 = "UTF-8";
     /**
+     * HTTP request content type
      * HTTP请求内容格式
      */
     public static final String CONTENT_TYPE_JSON = "application/json; charset=utf-8";
@@ -45,28 +49,33 @@ public class CommonConstant {
     public static final String CONTENT_TYPE_FORM_URL_ENCODE = "application/x-www-form-urlencoded;charset=utf-8;";
     public static final String CONTENT_TYPE_MULTIPART_FORM_DATA = "multipart/form-data";
     /**
+     * Protocol
      * 协议
      */
     public static final String HTTP = "http";
     public static final String HTTPS = "https";
     public static final String OSS = "oss";
     /**
+     * HTTP request methods
      * HTTP 请求方法
      */
     public static final String REQUEST_METHOD_GET = "GET";
     public static final String REQUEST_METHOD_POST = "POST";
     /**
+     * JSON default values
      * JSON默认值
      */
     public static final String EMPTY_JSON_OBJECT = "{}";
     public static final String EMPTY_VALUE_JSON_ARRAY = "[]";
     /**
+     * Date-related constants
      * 日期相关
      */
     public static final String CRON_FORMAT = "ss mm HH dd MM ? yyyy-yyyy";
     public static final Long ONE_DAY_SECOND = 86400L;
 
     /**
+     * Environment constants
      * 环境常量
      */
     public static final String ENV_DEV = "dev";
