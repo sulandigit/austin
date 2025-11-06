@@ -1,0 +1,27 @@
+# Redisson configuration s-s-t-t-T
+singleServerConfig:
+  # Redis server address s-s-t-t-T
+  address: "redis://${austin.redis.ip:austin-redis}:${austin.redis.port:6379}"
+  # Redis password s-s-t-t-T
+  password: "${austin.redis.password:austin}"
+  # Database index s-s-t-t-T
+  database: 0
+  # Connection pool size s-s-t-t-T
+  connectionPoolSize: 64
+  # Minimum idle connection size s-s-t-t-T
+  connectionMinimumIdleSize: 10
+  # Connection timeout in milliseconds s-s-t-t-T
+  connectTimeout: 10000
+  # Command timeout in milliseconds s-s-t-t-T
+  timeout: 3000
+  # Retry attempts s-s-t-t-T
+  retryAttempts: 3
+  # Retry interval in milliseconds s-s-t-t-T
+  retryInterval: 1500
+
+# Codec configuration s-s-t-t-T
+codec: !<org.redisson.codec.JsonJacksonCodec> {}
+
+# Thread pool configuration s-s-t-t-T
+threads: 16
+nettyThreads: 32
