@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * Process controller
  * 流程控制器
  *
  * @author 3y
@@ -18,20 +19,24 @@ import java.util.Objects;
 public class ProcessController {
 
     /**
+     * Template mapping
      * 模板映射
      */
     private Map<String, ProcessTemplate> templateConfig = null;
 
 
     /**
+     * Execute the chain of responsibility
      * 执行责任链
      *
      * @param context
+     * @return Returns the context content
      * @return 返回上下文内容
      */
     public ProcessContext process(ProcessContext context) {
 
         /**
+         * Pre-check
          * 前置检查
          */
         try {
@@ -41,6 +46,7 @@ public class ProcessController {
         }
 
         /**
+         * Iterate through process nodes
          * 遍历流程节点
          */
         List<BusinessProcess> processList = templateConfig.get(context.getCode()).getProcessList();
@@ -55,12 +61,16 @@ public class ProcessController {
 
 
     /**
+     * Pre-execution check, throw exception if error occurs
      * 执行前检查，出错则抛出异常
      *
+     * @param context Execution context
      * @param context 执行上下文
+     * @throws ProcessException Exception information
      * @throws ProcessException 异常信息
      */
     private void preCheck(ProcessContext context) throws ProcessException {
+        // Context
         // 上下文
         if (Objects.isNull(context)) {
             context = new ProcessContext();
@@ -68,6 +78,7 @@ public class ProcessController {
             throw new ProcessException(context);
         }
 
+        // Business code
         // 业务代码
         String businessCode = context.getCode();
         if (Objects.isNull(businessCode)) {
@@ -75,6 +86,7 @@ public class ProcessController {
             throw new ProcessException(context);
         }
 
+        // Execution template
         // 执行模板
         ProcessTemplate processTemplate = templateConfig.get(businessCode);
         if (Objects.isNull(processTemplate)) {
@@ -82,6 +94,7 @@ public class ProcessController {
             throw new ProcessException(context);
         }
 
+        // Execution template list
         // 执行模板列表
         List<BusinessProcess> processList = processTemplate.getProcessList();
         if (Objects.isNull(processList) || processList.isEmpty()) {

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Send message, route to corresponding channel to send message
  * 发送消息，路由到对应的渠道下发消息
  *
  * @author 3y
@@ -24,6 +25,8 @@ public class SendMessageAction implements BusinessProcess<TaskInfo> {
     public void process(ProcessContext<TaskInfo> context) {
         TaskInfo taskInfo = context.getProcessModel();
 
+        // WeChat Mini Program & Official Account only support single recipient push,
+        // for unified subsequent processing, we handle it as single sending here
         // 微信小程序&服务号只支持单人推送，为了后续逻辑统一处理，于是在这做了单发处理
         if (ChannelType.MINI_PROGRAM.getCode().equals(taskInfo.getSendChannel())
                 || ChannelType.OFFICIAL_ACCOUNT.getCode().equals(taskInfo.getSendChannel())

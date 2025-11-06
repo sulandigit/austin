@@ -18,8 +18,11 @@ import java.util.Objects;
 
 
 /**
+ * Deduplication service
  * 去重服务
+ * 1. Deduplication based on same content within N minutes (SlideWindowLimitService)
  * 1. 根据相同内容N分钟去重（SlideWindowLimitService）
+ * 2. Frequency deduplication for same channel within one day (SimpleLimitService)
  * 2. 相同的渠道一天内频次去重（SimpleLimitService）
  *
  * @author 3y
@@ -39,9 +42,11 @@ public class DeduplicationAction implements BusinessProcess<TaskInfo> {
     public void process(ProcessContext<TaskInfo> context) {
         TaskInfo taskInfo = context.getProcessModel();
 
+        // Configuration example: {"deduplication_10":{"num":1,"time":300},"deduplication_20":{"num":5}}
         // 配置样例{"deduplication_10":{"num":1,"time":300},"deduplication_20":{"num":5}}
         String deduplicationConfig = config.getProperty(DEDUPLICATION_RULE_KEY, CommonConstant.EMPTY_JSON_OBJECT);
 
+        // Deduplication
         // 去重
         List<Integer> deduplicationList = EnumUtil.getCodeList(DeduplicationType.class);
         for (Integer deduplicationType : deduplicationList) {
