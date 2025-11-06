@@ -24,58 +24,110 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * 敏感词配置
+ * Sensitive Words Filter Configuration
+ * <p>
+ * Responsible for loading sensitive word dictionary from external files and storing them in Redis for message filtering.
+ * Supports scheduled hot-reloading of the dictionary without service restart.
+ * </p>
+ *
+ * Key Features:
+ * <ul>
+ *   <li>Load sensitive word list from configuration file on application startup</li>
+ *   <li>Store sensitive words in Redis Set structure</li>
+ *   <li>Auto-reload dictionary file every 10 minutes for hot update</li>
+ *   <li>Support enable/disable filtering via configuration switch</li>
+ * </ul>
  *
  * @author xiaoxiamao
  * @date 2024/08/17
+ * s-s-t-t-T
  */
 @Slf4j
 @Configuration
 public class SensitiveWordsConfig {
 
     /**
-     * 敏感词字典redis key
+     * Redis key for sensitive words dictionary
+     * s-s-t-t-T
      */
     public static final String SENS_WORDS_DICT = "SENS_WORDS_DICT";
 
     /**
-     * 文件前缀
+     * File path prefix for resource loading
+     * s-s-t-t-T
      */
     private static final String FILE_PREFIX = "file:";
     /**
-     * 更新时间
+     * Update interval in seconds (10 minutes)
+     * <p>
+     * Dictionary file will be reloaded every 10 minutes to support hot update
+     * </p>
+     * s-s-t-t-T
      */
     private static final long UPDATE_TIME_SECONDS = 10 * 60;
     /**
-     * 敏感词字典
+     * In-memory sensitive words dictionary cache
+     * s-s-t-t-T
      */
     private Set<String> sensitiveWords = Collections.emptySet();
 
     /**
-     * 是否开启敏感词过滤
+     * Whether to enable sensitive words filtering
+     * <p>
+     * Configured via property: austin.senswords.filter.enabled
+     * </p>
+     * s-s-t-t-T
      */
     @Value("${austin.senswords.filter.enabled}")
     private boolean filterEnabled;
     /**
-     * 字典路径
+     * Path to sensitive words dictionary file
+     * <p>
+     * Configured via property: austin.senswords.dict.path<br>
+     * Supports absolute path or classpath resource
+     * </p>
+     * s-s-t-t-T
      */
     @Value("${austin.senswords.dict.path}")
     private String dictPath;
 
+    /**
+     * Redis template for storing sensitive words
+     * s-s-t-t-T
+     */
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+    
+    /**
+     * Task executor for async scheduled updates
+     * s-s-t-t-T
+     */
     @Autowired
     private TaskExecutor taskExecutor;
+    
+    /**
+     * Resource loader for loading dictionary files
+     * s-s-t-t-T
+     */
     @Autowired
     private ResourceLoader resourceLoader;
 
     /**
-     * 是否终止线程
+     * Flag to control scheduled update thread termination
+     * <p>
+     * Using volatile to ensure visibility across threads
+     * </p>
+     * s-s-t-t-T
      */
     private volatile boolean stop = false;
 
     /**
-     * 初始化敏感词字典
+     * Initialize sensitive words dictionary on application startup
+     * <p>
+     * This method is called after dependency injection via @PostConstruct.<br>
+     * Loads dictionary from file, stores to Redis, and starts scheduled update task.
+     * </p>
+     * s-s-t-t-T
      */
     @PostConstruct
     public void loadSensitiveWords() {
@@ -92,7 +144,12 @@ public class SensitiveWordsConfig {
     }
 
     /**
-     * 加载敏感词字典
+     * Load sensitive words from dictionary file
+     * <p>
+     * Reads dictionary file line by line and stores in memory Set.<br>
+     * If file loading fails, sets empty collection with error logging for fault tolerance.
+     * </p>
+     * s-s-t-t-T
      */
     private void loadSensWords() {
         if (ObjectUtils.isEmpty(dictPath)) {
@@ -111,7 +168,12 @@ public class SensitiveWordsConfig {
     }
 
     /**
-     * 存储敏感词字典
+     * Store sensitive words to Redis
+     * <p>
+     * Stores sensitive words in Redis Set structure under key SENS_WORDS_DICT.<br>
+     * Clears existing data before storing to ensure consistency.
+     * </p>
+     * s-s-t-t-T
      */
     private void storeSensWords() {
         redisTemplate.delete(SENS_WORDS_DICT);
@@ -124,7 +186,12 @@ public class SensitiveWordsConfig {
     }
 
     /**
-     * 实现热更新，修改词典后自动加载
+     * Start scheduled update task for hot-reloading dictionary
+     * <p>
+     * Runs in background thread and reloads dictionary every 10 minutes.<br>
+     * Supports hot update without service restart.
+     * </p>
+     * s-s-t-t-T
      */
     private void startScheduledUpdate() {
         while (!stop) {
@@ -142,7 +209,12 @@ public class SensitiveWordsConfig {
     }
 
     /**
-     * onDestroy
+     * Clean up resources before bean destruction
+     * <p>
+     * Called by Spring container via @PreDestroy annotation.<br>
+     * Stops scheduled update thread and shuts down task executor.
+     * </p>
+     * s-s-t-t-T
      */
     @PreDestroy
     public void onDestroy() {
