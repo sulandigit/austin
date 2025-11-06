@@ -57,7 +57,12 @@ public enum AnchorState implements PowerfulEnum {
     /**
      * 点击（下发的消息被点击）
      */
-    CLICK(64, "消息被点击");
+    CLICK(64, "消息被点击"),
+
+    /**
+     * 死信队列（消息消费失败进入死信队列）
+     */
+    DEAD_LETTER(80, "消息进入死信队列");
 
 
     private final Integer code;
