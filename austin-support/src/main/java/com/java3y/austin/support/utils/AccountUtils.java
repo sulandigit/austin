@@ -13,6 +13,7 @@ import com.java3y.austin.common.dto.account.sms.SmsAccount;
 import com.java3y.austin.common.enums.ChannelType;
 import com.java3y.austin.support.dao.ChannelAccountDao;
 import com.java3y.austin.support.domain.ChannelAccount;
+import com.java3y.austin.support.service.CacheService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.redis.RedisTemplateWxRedisOps;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -41,6 +42,8 @@ public class AccountUtils {
     private ChannelAccountDao channelAccountDao;
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private CacheService cacheService;
 
     /**
      * 消息的小程序/微信服务号账号
@@ -66,9 +69,9 @@ public class AccountUtils {
     @SuppressWarnings("unchecked")
     public <T> T getAccountById(Integer sendAccountId, Class<T> clazz) {
         try {
-            Optional<ChannelAccount> optionalChannelAccount = channelAccountDao.findById(Long.valueOf(sendAccountId));
-            if (optionalChannelAccount.isPresent()) {
-                ChannelAccount channelAccount = optionalChannelAccount.get();
+            // Use cache service with bloom filter and null cache protection s-s-t-t-T
+            ChannelAccount channelAccount = cacheService.getChannelAccount(Long.valueOf(sendAccountId));
+            if (channelAccount != null) {
                 if (clazz.equals(WxMaService.class)) {
                     return (T) ConcurrentHashMapUtils.computeIfAbsent(miniProgramServiceMap, channelAccount, account -> initMiniProgramService(JSON.parseObject(account.getAccountConfig(), WeChatMiniProgramAccount.class)));
                 } else if (clazz.equals(WxMpService.class)) {

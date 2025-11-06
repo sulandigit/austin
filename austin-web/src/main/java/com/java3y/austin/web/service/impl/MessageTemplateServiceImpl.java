@@ -15,6 +15,7 @@ import com.java3y.austin.cron.xxl.service.CronTaskService;
 import com.java3y.austin.cron.xxl.utils.XxlJobUtils;
 import com.java3y.austin.support.dao.MessageTemplateDao;
 import com.java3y.austin.support.domain.MessageTemplate;
+import com.java3y.austin.support.service.CacheService;
 import com.java3y.austin.web.service.MessageTemplateService;
 import com.java3y.austin.web.vo.MessageTemplateParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,9 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
 
     @Autowired
     private XxlJobUtils xxlJobUtils;
+
+    @Autowired
+    private CacheService cacheService;
 
     @Override
     public Page<MessageTemplate> queryList(MessageTemplateParam param) {
@@ -82,7 +86,12 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
         }
 
         messageTemplate.setUpdated(Math.toIntExact(DateUtil.currentSeconds()));
-        return messageTemplateDao.save(messageTemplate);
+        MessageTemplate saved = messageTemplateDao.save(messageTemplate);
+        
+        // Update cache after save s-s-t-t-T
+        cacheService.updateMessageTemplateCache(saved);
+        
+        return saved;
     }
 
 
@@ -94,13 +103,16 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
             if (Objects.nonNull(messageTemplate.getCronTaskId()) && messageTemplate.getCronTaskId() > 0) {
                 cronTaskService.deleteCronTask(messageTemplate.getCronTaskId());
             }
+            // Delete cache when template is deleted s-s-t-t-T
+            cacheService.deleteMessageTemplateCache(messageTemplate.getId());
         }
         messageTemplateDao.saveAll(messageTemplates);
     }
 
     @Override
     public MessageTemplate queryById(Long id) {
-        return messageTemplateDao.findById(id).orElse(null);
+        // Use cache service with bloom filter and null cache protection s-s-t-t-T
+        return cacheService.getMessageTemplate(id);
     }
 
     @Override
