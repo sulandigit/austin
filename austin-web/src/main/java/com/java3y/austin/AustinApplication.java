@@ -9,12 +9,14 @@ import org.springframework.boot.ansi.AnsiColor;
 import org.springframework.boot.ansi.AnsiOutput;
 import org.springframework.boot.ansi.AnsiStyle;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 /**
  * @author 3y
  */
 @SpringBootApplication
+@EnableScheduling
 @Slf4j
 public class AustinApplication implements CommandLineRunner {
 

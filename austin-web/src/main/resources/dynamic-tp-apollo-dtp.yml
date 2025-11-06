@@ -28,6 +28,20 @@ spring:
           keepAliveTime: 50
           allowCoreThreadTimeOut: false
           threadNamePrefix: austin-           # 线程名前缀
+          notifyItems:                        # 报警项配置
+            - type: capacity                 # 队列容量报警
+              enabled: true
+              threshold: 80
+              platforms: [ding,wechat]
+              interval: 120
+            - type: change                   # 配置变更通知
+              enabled: true
+            - type: liveness                 # 活跃度报警
+              enabled: true
+              threshold: 80
+            - type: reject                   # 拒绝任务报警
+              enabled: true
+              threshold: 1
         - threadPoolName: execute-xxl-thread-pool
           corePoolSize: 3
           maximumPoolSize: 3
