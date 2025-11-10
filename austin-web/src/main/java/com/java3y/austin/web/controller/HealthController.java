@@ -5,8 +5,13 @@ import com.google.common.base.Throwables;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.DescribeClusterResult;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,6 +42,15 @@ public class HealthController {
 
     @Autowired(required = false)
     private StringRedisTemplate redisTemplate;
+
+    @Autowired(required = false)
+    private KafkaAdmin kafkaAdmin;
+
+    @Autowired(required = false)
+    private RabbitTemplate rabbitTemplate;
+
+    @Value("${austin.mq.pipeline:eventBus}")
+    private String mqPipeline;
 
     /**
      * 简单健康检测
@@ -77,7 +91,9 @@ public class HealthController {
                 Map<String, Object> components = new HashMap<>();
                 components.put("database", checkDatabase());
                 components.put("redis", checkRedis());
+                components.put("messageQueue", checkMessageQueue());
                 healthInfo.put("components", components);
+                healthInfo.put("mqPipeline", mqPipeline);
             }
             
             return healthInfo;
@@ -220,6 +236,129 @@ public class HealthController {
     }
 
     /**
+     * 检查消息队列
+     */
+    private Map<String, Object> checkMessageQueue() {
+        Map<String, Object> mqInfo = new HashMap<>();
+        mqInfo.put("pipeline", mqPipeline);
+        
+        switch (mqPipeline) {
+            case "kafka":
+                return checkKafka();
+            case "rabbitMq":
+                return checkRabbitMQ();
+            case "redis":
+                // Redis作为MQ时，使用Redis健康检查
+                Map<String, Object> redisAsMq = checkRedis();
+                redisAsMq.put("pipeline", "redis");
+                return redisAsMq;
+            case "eventBus":
+            case "springEventBus":
+                mqInfo.put("status", "UP");
+                mqInfo.put("message", "In-memory event bus, always available");
+                return mqInfo;
+            default:
+                mqInfo.put("status", "UNKNOWN");
+                mqInfo.put("message", "Unknown MQ pipeline: " + mqPipeline);
+                return mqInfo;
+        }
+    }
+
+    /**
+     * 检查Kafka连接
+     */
+    private Map<String, Object> checkKafka() {
+        Map<String, Object> kafkaInfo = new HashMap<>();
+        kafkaInfo.put("pipeline", "kafka");
+        
+        if (kafkaAdmin == null) {
+            kafkaInfo.put("status", "UNKNOWN");
+            kafkaInfo.put("message", "Kafka not configured");
+            return kafkaInfo;
+        }
+        
+        AdminClient adminClient = null;
+        try {
+            long startTime = System.currentTimeMillis();
+            adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties());
+            DescribeClusterResult clusterResult = adminClient.describeCluster();
+            
+            // 获取集群ID，验证连接
+            String clusterId = clusterResult.clusterId().get(5, TimeUnit.SECONDS);
+            int nodeCount = clusterResult.nodes().get(5, TimeUnit.SECONDS).size();
+            long responseTime = System.currentTimeMillis() - startTime;
+            
+            kafkaInfo.put("status", "UP");
+            kafkaInfo.put("clusterId", clusterId);
+            kafkaInfo.put("nodes", nodeCount);
+            kafkaInfo.put("responseTime", responseTime + "ms");
+        } catch (Exception e) {
+            log.error("Kafka health check failed: {}", e.getMessage());
+            kafkaInfo.put("status", "DOWN");
+            kafkaInfo.put("error", e.getMessage());
+        } finally {
+            if (adminClient != null) {
+                try {
+                    adminClient.close();
+                } catch (Exception e) {
+                    log.warn("Failed to close Kafka admin client: {}", e.getMessage());
+                }
+            }
+        }
+        
+        return kafkaInfo;
+    }
+
+    /**
+     * 检查RabbitMQ连接
+     */
+    private Map<String, Object> checkRabbitMQ() {
+        Map<String, Object> rabbitInfo = new HashMap<>();
+        rabbitInfo.put("pipeline", "rabbitMq");
+        
+        if (rabbitTemplate == null) {
+            rabbitInfo.put("status", "UNKNOWN");
+            rabbitInfo.put("message", "RabbitMQ not configured");
+            return rabbitInfo;
+        }
+        
+        try {
+            long startTime = System.currentTimeMillis();
+            
+            // 通过获取连接工厂来验证连接
+            org.springframework.amqp.rabbit.connection.Connection connection = 
+                rabbitTemplate.getConnectionFactory().createConnection();
+            
+            if (connection.isOpen()) {
+                long responseTime = System.currentTimeMillis() - startTime;
+                rabbitInfo.put("status", "UP");
+                rabbitInfo.put("responseTime", responseTime + "ms");
+                
+                // 获取连接信息
+                try {
+                    String host = connection.getDelegate().getAddress().getHostAddress();
+                    int port = connection.getDelegate().getPort();
+                    rabbitInfo.put("host", host);
+                    rabbitInfo.put("port", port);
+                } catch (Exception e) {
+                    log.debug("Failed to get RabbitMQ connection details: {}", e.getMessage());
+                }
+                
+                connection.close();
+            } else {
+                rabbitInfo.put("status", "DOWN");
+                rabbitInfo.put("message", "RabbitMQ connection is not open");
+            }
+        } catch (Exception e) {
+            log.error("RabbitMQ health check failed: {}", e.getMessage());
+            rabbitInfo.put("status", "DOWN");
+            rabbitInfo.put("error", e.getMessage());
+        }
+        
+        return rabbitInfo;
+    }
+
+    /**
      * 就绪检查 - 用于K8s readiness probe
      *
      * @return 就绪状态
@@ -233,6 +372,7 @@ public class HealthController {
         // 检查关键组件
         Map<String, Object> dbStatus = checkDatabase();
         Map<String, Object> redisStatus = checkRedis();
+        Map<String, Object> mqStatus = checkMessageQueue();
         
         if ("DOWN".equals(dbStatus.get("status"))) {
             isReady = false;
@@ -240,11 +380,16 @@ public class HealthController {
         if ("DOWN".equals(redisStatus.get("status"))) {
             isReady = false;
         }
+        if ("DOWN".equals(mqStatus.get("status"))) {
+            isReady = false;
+        }
         
         readyInfo.put("status", isReady ? "READY" : "NOT_READY");
         readyInfo.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         readyInfo.put("database", dbStatus.get("status"));
         readyInfo.put("redis", redisStatus.get("status"));
+        readyInfo.put("messageQueue", mqStatus.get("status"));
+        readyInfo.put("mqPipeline", mqPipeline);
         
         return readyInfo;
     }
