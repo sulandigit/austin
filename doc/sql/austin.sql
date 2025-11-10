@@ -68,3 +68,26 @@ CREATE TABLE IF NOT EXISTS `channel_account`
     KEY `idx_send_channel` (`send_channel`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='渠道账号信息';
+
+CREATE TABLE IF NOT EXISTS `operation_audit_log`
+(
+    `id`               BIGINT(20)   NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `operator`         VARCHAR(64)           DEFAULT '' COMMENT '操作人（用户标识）',
+    `operate_time`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+    `operate_ip`       VARCHAR(128)          DEFAULT '' COMMENT '操作IP地址',
+    `request_uri`      VARCHAR(512) NOT NULL DEFAULT '' COMMENT '请求URI',
+    `request_method`   VARCHAR(16)  NOT NULL DEFAULT '' COMMENT '请求方法（GET/POST/PUT/DELETE）',
+    `operation_type`   VARCHAR(64)           DEFAULT '' COMMENT '操作类型（业务描述）',
+    `request_params`   TEXT COMMENT '请求参数（JSON格式）',
+    `execute_result`   TINYINT(4)   NOT NULL DEFAULT '0' COMMENT '执行结果（10-成功 20-失败）',
+    `error_message`    TEXT COMMENT '错误信息（失败时记录）',
+    `execute_duration` INT(11)               DEFAULT '0' COMMENT '执行耗时（毫秒）',
+    `user_agent`       VARCHAR(512)          DEFAULT '' COMMENT '客户端User-Agent',
+    `created`          INT(11)      NOT NULL DEFAULT '0' COMMENT '创建时间（时间戳）',
+    PRIMARY KEY (`id`),
+    KEY `idx_operator` (`operator`),
+    KEY `idx_operate_time` (`operate_time`),
+    KEY `idx_request_uri` (`request_uri`(255)),
+    KEY `idx_execute_result` (`execute_result`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='操作审计日志表';
