@@ -7,6 +7,7 @@ import com.java3y.austin.common.constant.CommonConstant;
 import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.common.enums.ChannelType;
 import com.java3y.austin.common.enums.EnumUtil;
+import com.java3y.austin.handler.constant.HandlerConstant;
 import com.java3y.austin.handler.enums.RateLimitStrategy;
 import com.java3y.austin.handler.flowcontrol.annotations.LocalRateLimit;
 import com.java3y.austin.support.service.ConfigService;
@@ -30,9 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @Slf4j
 public class FlowControlFactory implements ApplicationContextAware {
-
-    private static final String FLOW_CONTROL_KEY = "flowControlRule";
-    private static final String FLOW_CONTROL_PREFIX = "flow_control_";
 
     private final Map<RateLimitStrategy, FlowControlService> flowControlServiceMap = new ConcurrentHashMap<>();
 
@@ -78,12 +76,12 @@ public class FlowControlFactory implements ApplicationContextAware {
      * @param channelCode
      */
     private Double getRateLimitConfig(Integer channelCode) {
-        String flowControlConfig = config.getProperty(FLOW_CONTROL_KEY, CommonConstant.EMPTY_JSON_OBJECT);
+        String flowControlConfig = config.getProperty(HandlerConstant.FLOW_CONTROL_KEY, CommonConstant.EMPTY_JSON_OBJECT);
         JSONObject jsonObject = JSON.parseObject(flowControlConfig);
-        if (Objects.isNull(jsonObject.getDouble(FLOW_CONTROL_PREFIX + channelCode))) {
+        if (Objects.isNull(jsonObject.getDouble(HandlerConstant.FLOW_CONTROL_PREFIX + channelCode))) {
             return null;
         }
-        return jsonObject.getDouble(FLOW_CONTROL_PREFIX + channelCode);
+        return jsonObject.getDouble(HandlerConstant.FLOW_CONTROL_PREFIX + channelCode);
     }
 
     @PostConstruct

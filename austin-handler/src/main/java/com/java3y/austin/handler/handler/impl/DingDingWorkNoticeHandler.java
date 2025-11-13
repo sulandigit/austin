@@ -21,7 +21,7 @@ import com.java3y.austin.common.dto.account.DingDingWorkNoticeAccount;
 import com.java3y.austin.common.dto.model.DingDingWorkContentModel;
 import com.java3y.austin.common.enums.ChannelType;
 import com.java3y.austin.common.enums.SendMessageType;
-import com.java3y.austin.handler.handler.BaseHandler;
+import com.java3y.austin.handler.constant.HandlerConstant;
 import com.java3y.austin.support.config.SupportThreadPoolConfig;
 import com.java3y.austin.support.utils.AccessTokenUtils;
 import com.java3y.austin.support.utils.AccountUtils;
@@ -45,8 +45,6 @@ import org.springframework.stereotype.Service;
 public class DingDingWorkNoticeHandler extends BaseHandler{
 
 
-    private static final String DING_DING_RECALL_KEY_PREFIX = "DING_RECALL_";
-    private static final String DING_DING_RECALL_BIZ_TYPE = "DingDingWorkNoticeHandler#recall";
     @Autowired
     private AccountUtils accountUtils;
     @Autowired
@@ -71,7 +69,7 @@ public class DingDingWorkNoticeHandler extends BaseHandler{
 
             // 发送成功后记录TaskId，用于消息撤回(支持24小时之内)
             if (response.isSuccess()) {
-                saveRecallInfo(DING_DING_RECALL_KEY_PREFIX, taskInfo.getMessageTemplateId(), String.valueOf(response.getTaskId()), CommonConstant.ONE_DAY_SECOND);
+                saveRecallInfo(HandlerConstant.DING_DING_RECALL_KEY_PREFIX, taskInfo.getMessageTemplateId(), String.valueOf(response.getTaskId()), CommonConstant.ONE_DAY_SECOND);
                 return true;
             }
             log.error("DingDingWorkNoticeHandler#handler fail!result:{},params:{}", JSON.toJSONString(response), JSON.toJSONString(taskInfo));
@@ -205,12 +203,12 @@ public class DingDingWorkNoticeHandler extends BaseHandler{
                 // 优先撤回messageId，如果未传入messageId，则按照模板id撤回
                 if (CollUtil.isNotEmpty(recallTaskInfo.getRecallMessageId())) {
                     for (String messageId : recallTaskInfo.getRecallMessageId()) {
-                        String taskId = redisTemplate.opsForValue().get(DING_DING_RECALL_KEY_PREFIX + messageId);
+                        String taskId = redisTemplate.opsForValue().get(HandlerConstant.DING_DING_RECALL_KEY_PREFIX + messageId);
                         recallBiz(client, account, accessToken, taskId);
                     }
                 } else {
-                    while (redisTemplate.opsForList().size(DING_DING_RECALL_KEY_PREFIX + recallTaskInfo.getMessageTemplateId()) > 0) {
-                        String taskId = redisTemplate.opsForList().leftPop(DING_DING_RECALL_KEY_PREFIX + recallTaskInfo.getMessageTemplateId());
+                    while (redisTemplate.opsForList().size(HandlerConstant.DING_DING_RECALL_KEY_PREFIX + recallTaskInfo.getMessageTemplateId()) > 0) {
+                        String taskId = redisTemplate.opsForList().leftPop(HandlerConstant.DING_DING_RECALL_KEY_PREFIX + recallTaskInfo.getMessageTemplateId());
                         recallBiz(client, account, accessToken, taskId);
                     }
                 }
@@ -234,7 +232,7 @@ public class DingDingWorkNoticeHandler extends BaseHandler{
         req.setAgentId(Long.valueOf(account.getAgentId()));
         req.setMsgTaskId(Long.valueOf(taskId));
         OapiMessageCorpconversationRecallResponse rsp = client.execute(req, accessToken);
-        logUtils.print(LogParam.builder().bizType(DING_DING_RECALL_BIZ_TYPE).object(JSON.toJSONString(rsp)).build());
+        logUtils.print(LogParam.builder().bizType(HandlerConstant.BIZ_TYPE_DING_DING_RECALL).object(JSON.toJSONString(rsp)).build());
     }
 }
 

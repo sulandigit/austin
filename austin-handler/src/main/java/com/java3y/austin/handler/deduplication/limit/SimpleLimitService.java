@@ -3,6 +3,7 @@ package com.java3y.austin.handler.deduplication.limit;
 import cn.hutool.core.collection.CollUtil;
 import com.java3y.austin.common.constant.CommonConstant;
 import com.java3y.austin.common.domain.TaskInfo;
+import com.java3y.austin.handler.constant.HandlerConstant;
 import com.java3y.austin.handler.deduplication.DeduplicationParam;
 import com.java3y.austin.handler.deduplication.service.AbstractDeduplicationService;
 import com.java3y.austin.support.utils.RedisUtils;
@@ -22,8 +23,6 @@ import java.util.stream.Collectors;
 @Service(value = "SimpleLimitService")
 public class SimpleLimitService extends AbstractLimitService {
 
-    private static final String LIMIT_TAG = "SP_";
-
     @Autowired
     private RedisUtils redisUtils;
 
@@ -33,11 +32,11 @@ public class SimpleLimitService extends AbstractLimitService {
         // 获取redis记录
         Map<String, String> readyPutRedisReceiver = new HashMap<>(taskInfo.getReceiver().size());
         //redis数据隔离
-        List<String> keys = deduplicationAllKey(service, taskInfo).stream().map(key -> LIMIT_TAG + key).collect(Collectors.toList());
+        List<String> keys = deduplicationAllKey(service, taskInfo).stream().map(key -> HandlerConstant.LIMIT_TAG_SIMPLE + key).collect(Collectors.toList());
         Map<String, String> inRedisValue = redisUtils.mGet(keys);
 
         for (String receiver : taskInfo.getReceiver()) {
-            String key = LIMIT_TAG + deduplicationSingleKey(service, taskInfo, receiver);
+            String key = HandlerConstant.LIMIT_TAG_SIMPLE + deduplicationSingleKey(service, taskInfo, receiver);
             String value = inRedisValue.get(key);
 
             // 符合条件的用户

@@ -8,6 +8,7 @@ import com.java3y.austin.common.enums.AnchorState;
 import com.java3y.austin.common.enums.ShieldType;
 import com.java3y.austin.common.pipeline.BusinessProcess;
 import com.java3y.austin.common.pipeline.ProcessContext;
+import com.java3y.austin.handler.constant.HandlerConstant;
 import com.java3y.austin.support.utils.LogUtils;
 import com.java3y.austin.support.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,6 @@ import java.time.LocalDateTime;
 @Service
 public class ShieldAction implements BusinessProcess<TaskInfo> {
 
-    private static final String NIGHT_SHIELD_BUT_NEXT_DAY_SEND_KEY = "night_shield_send";
     private static final long SECONDS_OF_A_DAY = 86400L;
 
     /**
@@ -56,7 +56,7 @@ public class ShieldAction implements BusinessProcess<TaskInfo> {
                         .bizId(taskInfo.getBizId()).messageId(taskInfo.getMessageId()).businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).build());
             }
             if (ShieldType.NIGHT_SHIELD_BUT_NEXT_DAY_SEND.getCode().equals(taskInfo.getShieldType())) {
-                redisUtils.lPush(NIGHT_SHIELD_BUT_NEXT_DAY_SEND_KEY, JSON.toJSONString(taskInfo,
+                redisUtils.lPush(HandlerConstant.NIGHT_SHIELD_BUT_NEXT_DAY_SEND_KEY, JSON.toJSONString(taskInfo,
                                 SerializerFeature.WriteClassName),
                         SECONDS_OF_A_DAY);
                 logUtils.print(AnchorInfo.builder().state(AnchorState.NIGHT_SHIELD_NEXT_SEND.getCode()).bizId(taskInfo.getBizId()).messageId(taskInfo.getMessageId()).businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).build());

@@ -13,6 +13,7 @@ import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.common.dto.account.GeTuiAccount;
 import com.java3y.austin.common.dto.model.PushContentModel;
 import com.java3y.austin.common.enums.ChannelType;
+import com.java3y.austin.handler.constant.HandlerConstant;
 import com.java3y.austin.handler.domain.push.PushParam;
 import com.java3y.austin.handler.domain.push.getui.BatchSendPushParam;
 import com.java3y.austin.handler.domain.push.getui.SendPushParam;
@@ -38,7 +39,6 @@ import java.util.Set;
 @Slf4j
 public class PushHandler extends BaseHandler{
 
-    private static final String HEADER_TOKEN_NAME = "token";
     @Autowired
     private AccountUtils accountUtils;
     @Autowired
@@ -85,7 +85,7 @@ public class PushHandler extends BaseHandler{
         String url = SendChanelUrlConstant.GE_TUI_BASE_URL + pushParam.getAppId() + SendChanelUrlConstant.GE_TUI_SINGLE_PUSH_PATH;
         SendPushParam sendPushParam = assembleParam((PushContentModel) pushParam.getTaskInfo().getContentModel(), pushParam.getTaskInfo().getReceiver());
         return HttpRequest.post(url).header(Header.CONTENT_TYPE.getValue(), ContentType.JSON.getValue())
-                .header(HEADER_TOKEN_NAME, pushParam.getToken())
+                .header(HandlerConstant.HEADER_TOKEN_NAME, pushParam.getToken())
                 .body(JSON.toJSONString(sendPushParam))
                 .timeout(2000)
                 .execute().body();
@@ -106,7 +106,7 @@ public class PushHandler extends BaseHandler{
                 .isAsync(true)
                 .audience(BatchSendPushParam.AudienceVO.builder().cid(pushParam.getTaskInfo().getReceiver()).build()).build();
         return HttpRequest.post(url).header(Header.CONTENT_TYPE.getValue(), ContentType.JSON.getValue())
-                .header(HEADER_TOKEN_NAME, pushParam.getToken())
+                .header(HandlerConstant.HEADER_TOKEN_NAME, pushParam.getToken())
                 .body(JSON.toJSONString(batchSendPushParam))
                 .timeout(2000)
                 .execute().body();
@@ -125,7 +125,7 @@ public class PushHandler extends BaseHandler{
         String taskId = "";
         try {
             String body = HttpRequest.post(url).header(Header.CONTENT_TYPE.getValue(), ContentType.JSON.getValue())
-                    .header(HEADER_TOKEN_NAME, pushParam.getToken())
+                    .header(HandlerConstant.HEADER_TOKEN_NAME, pushParam.getToken())
                     .body(JSON.toJSONString(param))
                     .timeout(2000)
                     .execute().body();
