@@ -25,6 +25,14 @@ public class ThreadPoolConstant {
      */
     public static final Integer BIG_QUEUE_SIZE = 1024;
 
+    /**
+     * 线程池监控和告警相关常量
+     */
+    public static final Double DEFAULT_QUEUE_USAGE_THRESHOLD = 80.0;
+    public static final Double DEFAULT_POOL_USAGE_THRESHOLD = 80.0;
+    public static final Long DEFAULT_ALARM_INTERVAL = 300L;
+    public static final Long DEFAULT_MONITOR_INTERVAL = 30L;
+
 
     private ThreadPoolConstant() {
     }
