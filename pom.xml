@@ -14,6 +14,8 @@
         <module>austin-cron</module>
         <module>austin-stream</module>
         <module>austin-data-house</module>
+        <module>austin-sdk</module>
+        <module>austin-cli</module>
     </modules>
 
     <parent>
@@ -115,6 +117,11 @@
             <dependency>
                 <groupId>com.java3y.austin</groupId>
                 <artifactId>austin-web</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.java3y.austin</groupId>
+                <artifactId>austin-sdk</artifactId>
                 <version>${revision}</version>
             </dependency>
 
