@@ -43,15 +43,7 @@ public class SendServiceImpl implements SendService {
                 .messageParamList(Collections.singletonList(sendRequest.getMessageParam()))
                 .build();
 
-        ProcessContext context = ProcessContext.builder()
-                .code(sendRequest.getCode())
-                .processModel(sendTaskModel)
-                .needBreak(false)
-                .response(BasicResultVO.success()).build();
-
-        ProcessContext process = processController.process(context);
-
-        return new SendResponse(process.getResponse().getStatus(), process.getResponse().getMsg(), (List<SimpleTaskInfo>) process.getResponse().getData());
+        return processAndBuildResponse(sendRequest.getCode(), sendTaskModel);
     }
 
     @Override
@@ -66,8 +58,19 @@ public class SendServiceImpl implements SendService {
                 .messageParamList(batchSendRequest.getMessageParamList())
                 .build();
 
+        return processAndBuildResponse(batchSendRequest.getCode(), sendTaskModel);
+    }
+
+    /**
+     * 通用处理方法，消除send和batchSend的重复代码
+     *
+     * @param code 请求码
+     * @param sendTaskModel 发送任务模型
+     * @return SendResponse
+     */
+    private SendResponse processAndBuildResponse(String code, SendTaskModel sendTaskModel) {
         ProcessContext context = ProcessContext.builder()
-                .code(batchSendRequest.getCode())
+                .code(code)
                 .processModel(sendTaskModel)
                 .needBreak(false)
                 .response(BasicResultVO.success()).build();

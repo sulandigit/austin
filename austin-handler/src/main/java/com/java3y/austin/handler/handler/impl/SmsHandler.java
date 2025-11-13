@@ -11,6 +11,7 @@ import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.common.dto.account.sms.SmsAccount;
 import com.java3y.austin.common.dto.model.SmsContentModel;
 import com.java3y.austin.common.enums.ChannelType;
+import com.java3y.austin.handler.constant.HandlerConstant;
 import com.java3y.austin.handler.domain.sms.MessageTypeSmsConfig;
 import com.java3y.austin.handler.domain.sms.SmsParam;
 import com.java3y.austin.handler.enums.LoadBalancerStrategy;
@@ -40,16 +41,9 @@ import java.util.List;
 public class SmsHandler extends BaseHandler{
 
     /**
-     * 流量自动分配策略
-     */
-    private static final Integer AUTO_FLOW_RULE = 0;
-    private static final String FLOW_KEY = "msgTypeSmsConfig";
-    private static final String FLOW_KEY_PREFIX = "message_type_";
-
-    /**
      * 默认负载均衡为随机加权, 待拓展读取配置, 不同Handler可绑定不同的负载均衡策略
      */
-    private static final String loadBalancerStrategy = LoadBalancerStrategy.SERVICE_LOAD_BALANCER_RANDOM_WEIGHT_ENHANCED;
+    private static final String LOAD_BALANCER_STRATEGY = LoadBalancerStrategy.SERVICE_LOAD_BALANCER_RANDOM_WEIGHT_ENHANCED;
 
     @Autowired
     private SmsRecordDao smsRecordDao;
@@ -78,7 +72,7 @@ public class SmsHandler extends BaseHandler{
              * 1、动态配置做流量负载
              * 2、发送短信
              */
-            List<MessageTypeSmsConfig> messageTypeSmsConfigs = serviceLoadBalancer.selectService(getMessageTypeSmsConfig(taskInfo), loadBalancerStrategy);
+            List<MessageTypeSmsConfig> messageTypeSmsConfigs = serviceLoadBalancer.selectService(getMessageTypeSmsConfig(taskInfo), LOAD_BALANCER_STRATEGY);
             for (MessageTypeSmsConfig messageTypeSmsConfig : messageTypeSmsConfigs) {
                 smsParam.setScriptName(messageTypeSmsConfig.getScriptName());
                 smsParam.setSendAccountId(messageTypeSmsConfig.getSendAccount());
@@ -114,7 +108,7 @@ public class SmsHandler extends BaseHandler{
         /**
          * 如果模板指定了账号，则优先使用具体的账号进行发送
          */
-        if (!taskInfo.getSendAccount().equals(AUTO_FLOW_RULE)) {
+        if (!taskInfo.getSendAccount().equals(HandlerConstant.AUTO_FLOW_RULE)) {
             SmsAccount account = accountUtils.getAccountById(taskInfo.getSendAccount(), SmsAccount.class);
             return Collections.singletonList(MessageTypeSmsConfig.builder().sendAccount(taskInfo.getSendAccount()).scriptName(account.getScriptName()).weights(100).build());
         }
@@ -122,10 +116,10 @@ public class SmsHandler extends BaseHandler{
         /**
          * 读取流量配置
          */
-        String property = config.getProperty(FLOW_KEY, CommonConstant.EMPTY_VALUE_JSON_ARRAY);
+        String property = config.getProperty(HandlerConstant.FLOW_KEY_SMS_CONFIG, CommonConstant.EMPTY_VALUE_JSON_ARRAY);
         JSONArray jsonArray = JSON.parseArray(property);
         for (int i = 0; i < jsonArray.size(); i++) {
-            JSONArray array = jsonArray.getJSONObject(i).getJSONArray(FLOW_KEY_PREFIX + taskInfo.getMsgType());
+            JSONArray array = jsonArray.getJSONObject(i).getJSONArray(HandlerConstant.FLOW_KEY_PREFIX + taskInfo.getMsgType());
             if (CollUtil.isNotEmpty(array)) {
                 return JSON.parseArray(JSON.toJSONString(array), MessageTypeSmsConfig.class);
             }

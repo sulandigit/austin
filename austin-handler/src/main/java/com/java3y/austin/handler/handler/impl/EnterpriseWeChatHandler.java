@@ -11,6 +11,7 @@ import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.common.dto.model.EnterpriseWeChatContentModel;
 import com.java3y.austin.common.enums.ChannelType;
 import com.java3y.austin.common.enums.SendMessageType;
+import com.java3y.austin.handler.constant.HandlerConstant;
 import com.java3y.austin.handler.handler.BaseHandler;
 import com.java3y.austin.support.config.SupportThreadPoolConfig;
 import com.java3y.austin.support.utils.AccountUtils;
@@ -42,8 +43,6 @@ import java.util.Map;
 @Slf4j
 public class EnterpriseWeChatHandler extends BaseHandler{
 
-    private static final String WE_CHAT_RECALL_KEY_PREFIX = "WECHAT_RECALL_";
-    private static final String WE_CHAT_RECALL_BIZ_TYPE = "EnterpriseWeChatHandler#recall";
     @Autowired
     private AccountUtils accountUtils;
     @Autowired
@@ -64,7 +63,7 @@ public class EnterpriseWeChatHandler extends BaseHandler{
 
             // 发送成功后记录TaskId，用于消息撤回(支持24小时之内)
             if (Integer.valueOf(WxCpErrorMsgEnum.CODE_0.getCode()).equals(result.getErrCode())) {
-                saveRecallInfo(WE_CHAT_RECALL_KEY_PREFIX, taskInfo.getMessageTemplateId(), String.valueOf(result.getMsgId()), CommonConstant.ONE_DAY_SECOND);
+                saveRecallInfo(HandlerConstant.WE_CHAT_RECALL_KEY_PREFIX, taskInfo.getMessageTemplateId(), String.valueOf(result.getMsgId()), CommonConstant.ONE_DAY_SECOND);
                 return true;
             }
             logUtils.print(AnchorInfo.builder().bizId(taskInfo.getBizId()).messageId(taskInfo.getMessageId()).businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).state(result.getErrCode()).build());
@@ -155,12 +154,12 @@ public class EnterpriseWeChatHandler extends BaseHandler{
                 // 优先撤回messageId，如果未传入messageId，则按照模板id撤回
                 if (CollUtil.isNotEmpty(recallTaskInfo.getRecallMessageId())) {
                     for (String messageId : recallTaskInfo.getRecallMessageId()) {
-                        String msgId = redisTemplate.opsForValue().get(WE_CHAT_RECALL_KEY_PREFIX + messageId);
+                        String msgId = redisTemplate.opsForValue().get(HandlerConstant.WE_CHAT_RECALL_KEY_PREFIX + messageId);
                         messageService.recall(msgId);
                     }
                 } else {
-                    while (redisTemplate.opsForList().size(WE_CHAT_RECALL_KEY_PREFIX + recallTaskInfo.getMessageTemplateId()) > 0) {
-                        String msgId = redisTemplate.opsForList().leftPop(WE_CHAT_RECALL_KEY_PREFIX + recallTaskInfo.getMessageTemplateId());
+                    while (redisTemplate.opsForList().size(HandlerConstant.WE_CHAT_RECALL_KEY_PREFIX + recallTaskInfo.getMessageTemplateId()) > 0) {
+                        String msgId = redisTemplate.opsForList().leftPop(HandlerConstant.WE_CHAT_RECALL_KEY_PREFIX + recallTaskInfo.getMessageTemplateId());
                         messageService.recall(msgId);
                     }
                 }

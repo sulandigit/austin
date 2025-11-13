@@ -58,56 +58,76 @@ public class AccountUtils {
      * 微信服务号：返回 WxMpService
      * 其他渠道：返回XXXAccount账号对象
      *
-     * @param sendAccountId
-     * @param clazz
-     * @param <T>
-     * @return
+     * @param sendAccountId 账号ID
+     * @param clazz 返回类型
+     * @param <T> 返回类型
+     * @return 账号对象
      */
     @SuppressWarnings("unchecked")
     public <T> T getAccountById(Integer sendAccountId, Class<T> clazz) {
+        if (sendAccountId == null || clazz == null) {
+            log.error("AccountUtils#getAccountById fail! sendAccountId or clazz is null");
+            return null;
+        }
+
         try {
             Optional<ChannelAccount> optionalChannelAccount = channelAccountDao.findById(Long.valueOf(sendAccountId));
-            if (optionalChannelAccount.isPresent()) {
-                ChannelAccount channelAccount = optionalChannelAccount.get();
-                if (clazz.equals(WxMaService.class)) {
-                    return (T) ConcurrentHashMapUtils.computeIfAbsent(miniProgramServiceMap, channelAccount, account -> initMiniProgramService(JSON.parseObject(account.getAccountConfig(), WeChatMiniProgramAccount.class)));
-                } else if (clazz.equals(WxMpService.class)) {
-                    return (T) ConcurrentHashMapUtils.computeIfAbsent(officialAccountServiceMap, channelAccount, account -> initOfficialAccountService(JSON.parseObject(account.getAccountConfig(), WeChatOfficialAccount.class)));
-                } else {
-                    return JSON.parseObject(channelAccount.getAccountConfig(), clazz);
-                }
+            if (!optionalChannelAccount.isPresent()) {
+                log.error("AccountUtils#getAccountById fail! account not found, sendAccountId:{}", sendAccountId);
+                return null;
+            }
+
+            ChannelAccount channelAccount = optionalChannelAccount.get();
+            if (clazz.equals(WxMaService.class)) {
+                return (T) ConcurrentHashMapUtils.computeIfAbsent(miniProgramServiceMap, channelAccount, 
+                    account -> initMiniProgramService(JSON.parseObject(account.getAccountConfig(), WeChatMiniProgramAccount.class)));
+            } else if (clazz.equals(WxMpService.class)) {
+                return (T) ConcurrentHashMapUtils.computeIfAbsent(officialAccountServiceMap, channelAccount, 
+                    account -> initOfficialAccountService(JSON.parseObject(account.getAccountConfig(), WeChatOfficialAccount.class)));
+            } else {
+                return JSON.parseObject(channelAccount.getAccountConfig(), clazz);
             }
         } catch (Exception e) {
-            log.error("AccountUtils#getAccount fail! e:{}", Throwables.getStackTraceAsString(e));
+            log.error("AccountUtils#getAccountById fail! sendAccountId:{}, clazz:{}, error:{}", 
+                sendAccountId, clazz.getName(), Throwables.getStackTraceAsString(e));
+            return null;
         }
-        return null;
     }
 
     /**
-     * 通过脚本名 匹配到对应的短信账号
+     * 通过脚本名匹配到对应的短信账号
      *
      * @param scriptName 脚本名
-     * @param clazz
-     * @param <T>
-     * @return
+     * @param clazz 返回类型
+     * @param <T> 返回类型
+     * @return 短信账号对象
      */
     public <T> T getSmsAccountByScriptName(String scriptName, Class<T> clazz) {
+        if (scriptName == null || clazz == null) {
+            log.error("AccountUtils#getSmsAccountByScriptName fail! scriptName or clazz is null");
+            return null;
+        }
+
         try {
-            List<ChannelAccount> channelAccountList = channelAccountDao.findAllByIsDeletedEqualsAndSendChannelEquals(CommonConstant.FALSE, ChannelType.SMS.getCode());
+            List<ChannelAccount> channelAccountList = channelAccountDao.findAllByIsDeletedEqualsAndSendChannelEquals(
+                CommonConstant.FALSE, ChannelType.SMS.getCode());
+            
             for (ChannelAccount channelAccount : channelAccountList) {
                 try {
                     SmsAccount smsAccount = JSON.parseObject(channelAccount.getAccountConfig(), SmsAccount.class);
-                    if (smsAccount.getScriptName().equals(scriptName)) {
+                    if (scriptName.equals(smsAccount.getScriptName())) {
                         return JSON.parseObject(channelAccount.getAccountConfig(), clazz);
                     }
                 } catch (Exception e) {
-                    log.error("AccountUtils#getSmsAccount parse fail! e:{},account:{}", Throwables.getStackTraceAsString(e), JSON.toJSONString(channelAccount));
+                    log.warn("AccountUtils#getSmsAccountByScriptName parse account fail! accountId:{}, error:{}", 
+                        channelAccount.getId(), e.getMessage());
                 }
             }
+            log.error("AccountUtils#getSmsAccountByScriptName not found! scriptName:{}", scriptName);
         } catch (Exception e) {
-            log.error("AccountUtils#getSmsAccount fail! e:{}", Throwables.getStackTraceAsString(e));
+            log.error("AccountUtils#getSmsAccountByScriptName fail! scriptName:{}, error:{}", 
+                scriptName, Throwables.getStackTraceAsString(e));
         }
-        log.error("AccountUtils#getSmsAccount not found!:{}", scriptName);
         return null;
     }
 

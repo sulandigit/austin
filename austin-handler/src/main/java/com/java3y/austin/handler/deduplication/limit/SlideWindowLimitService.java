@@ -2,6 +2,7 @@ package com.java3y.austin.handler.deduplication.limit;
 
 import cn.hutool.core.util.IdUtil;
 import com.java3y.austin.common.domain.TaskInfo;
+import com.java3y.austin.handler.constant.HandlerConstant;
 import com.java3y.austin.handler.deduplication.DeduplicationParam;
 import com.java3y.austin.handler.deduplication.service.AbstractDeduplicationService;
 import com.java3y.austin.support.utils.RedisUtils;
@@ -25,8 +26,6 @@ import java.util.Set;
  */
 @Service(value = "SlideWindowLimitService")
 public class SlideWindowLimitService extends AbstractLimitService {
-
-    private static final String LIMIT_TAG = "SW_";
 
     @Autowired
     private RedisUtils redisUtils;
@@ -55,7 +54,7 @@ public class SlideWindowLimitService extends AbstractLimitService {
         Set<String> filterReceiver = new HashSet<>(taskInfo.getReceiver().size());
         long nowTime = System.currentTimeMillis();
         for (String receiver : taskInfo.getReceiver()) {
-            String key = LIMIT_TAG + deduplicationSingleKey(service, taskInfo, receiver);
+            String key = HandlerConstant.LIMIT_TAG_SLIDE_WINDOW + deduplicationSingleKey(service, taskInfo, receiver);
             String scoreValue = String.valueOf(IdUtil.getSnowflake().nextId());
             String score = String.valueOf(nowTime);
 
