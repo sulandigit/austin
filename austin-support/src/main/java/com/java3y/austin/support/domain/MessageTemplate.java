@@ -93,6 +93,22 @@ public class MessageTemplate implements Serializable {
     private String expectPushTime;
 
     /**
+     * 是否启用智能发送时间优化
+     * 0：不启用
+     * 1：启用
+     */
+    private Integer enableSmartSendTime;
+
+    /**
+     * 智能发送时间优化策略
+     * OPEN_RATE：打开率优先
+     * CLICK_RATE：点击率优先
+     * CONVERSION_RATE：转化率优先
+     * COMPREHENSIVE：综合评分
+     */
+    private String smartSendTimeStrategy;
+
+    /**
      * 消息内容  {$var} 为占位符
      */
     private String msgContent;
