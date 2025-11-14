@@ -68,3 +68,19 @@ CREATE TABLE IF NOT EXISTS `channel_account`
     KEY `idx_send_channel` (`send_channel`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='渠道账号信息';
+
+CREATE TABLE IF NOT EXISTS `audit_record`
+(
+    `id`                BIGINT(20)   NOT NULL AUTO_INCREMENT COMMENT '审批记录ID',
+    `template_id`       BIGINT(20)   NOT NULL DEFAULT '0' COMMENT '关联的消息模板ID',
+    `audit_status`      TINYINT(4)   NOT NULL DEFAULT '0' COMMENT '审批状态: 10.待审核 20.审核成功 30.被拒绝',
+    `auditor`           VARCHAR(45)  NOT NULL DEFAULT '' COMMENT '审批人员',
+    `audit_opinion`     VARCHAR(500) NOT NULL DEFAULT '' COMMENT '审批意见',
+    `audit_time`        INT(11)      NOT NULL DEFAULT '0' COMMENT '审批时间(秒级时间戳)',
+    `template_snapshot` TEXT COMMENT '模板快照(JSON格式,记录审批时的模板配置)',
+    `created`           INT(11)      NOT NULL DEFAULT '0' COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_template_id` (`template_id`),
+    KEY `idx_template_created` (`template_id`, `created`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='审批记录表';

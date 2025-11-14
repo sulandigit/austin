@@ -120,17 +120,22 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
             return BasicResultVO.fail();
         }
 
-        // 2.动态创建或更新定时任务
+        // 2.校验审批状态，必须为审核成功才能启动定时任务
+        if (!AuditStatus.AUDIT_SUCCESS.getCode().equals(messageTemplate.getAuditStatus())) {
+            return BasicResultVO.fail(RespStatusEnum.CLIENT_BAD_PARAMETERS, "模板未通过审批,不能启动定时任务");
+        }
+
+        // 3.动态创建或更新定时任务
         XxlJobInfo xxlJobInfo = xxlJobUtils.buildXxlJobInfo(messageTemplate);
 
-        // 3.获取taskId(如果本身存在则复用原有任务，如果不存在则得到新建后任务ID)
+        // 4.获取taskId(如果本身存在则复用原有任务，如果不存在则得到新建后任务ID)
         Integer taskId = messageTemplate.getCronTaskId();
         BasicResultVO basicResultVO = cronTaskService.saveCronTask(xxlJobInfo);
         if (Objects.isNull(taskId) && RespStatusEnum.SUCCESS.getCode().equals(basicResultVO.getStatus()) && Objects.nonNull(basicResultVO.getData())) {
             taskId = Integer.valueOf(String.valueOf(basicResultVO.getData()));
         }
 
-        // 4. 启动定时任务
+        // 5. 启动定时任务
         if (Objects.nonNull(taskId)) {
             cronTaskService.startCronTask(taskId);
             MessageTemplate clone = ObjectUtil.clone(messageTemplate).setMsgStatus(MessageStatus.RUN.getCode()).setCronTaskId(taskId).setUpdated(Math.toIntExact(DateUtil.currentSeconds()));
