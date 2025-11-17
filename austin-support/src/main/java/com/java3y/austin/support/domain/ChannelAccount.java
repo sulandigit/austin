@@ -17,10 +17,12 @@ import javax.persistence.Id;
 @AllArgsConstructor
 @Entity
 @ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ChannelAccount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     /**

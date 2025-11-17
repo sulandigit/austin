@@ -127,6 +127,11 @@
             <groupId>io.github.ZhongFuCheng3y</groupId>
             <artifactId>hades-nacos-starter</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
