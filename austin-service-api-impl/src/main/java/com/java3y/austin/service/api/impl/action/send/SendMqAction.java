@@ -1,8 +1,8 @@
 package com.java3y.austin.service.api.impl.action.send;
 
 import cn.hutool.core.collection.CollUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.serializer.SerializerFeature;
 import com.google.common.base.Throwables;
 import com.java3y.austin.common.domain.SimpleTaskInfo;
 import com.java3y.austin.common.domain.TaskInfo;

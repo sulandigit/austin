@@ -1,6 +1,6 @@
 package com.java3y.austin.handler.domain.wechat.robot;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

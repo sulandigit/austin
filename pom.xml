@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.6</version>
+        <version>3.2.0</version>
         <relativePath/>
     </parent>
 
@@ -35,24 +35,24 @@
         <revision>0.0.1-SNAPSHOT</revision>
 
         <!--构建配置-->
-        <java.version>1.8</java.version>
-        <target.java.version>1.8</target.java.version>
+        <java.version>21</java.version>
+        <target.java.version>21</target.java.version>
         <maven.compiler.source>${target.java.version}</maven.compiler.source>
         <maven.compiler.target>${target.java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!--依赖库版本-->
-        <mysql-connector-java.version>5.1.35</mysql-connector-java.version>
-        <hutool-all.version>5.7.15</hutool-all.version>
-        <guava.version>31.0.1-jre</guava.version>
-        <okhttp.version>4.9.2</okhttp.version>
-        <fastjson.version>1.2.83</fastjson.version>
-        <tencentcloud-sdk-java.version>3.1.510</tencentcloud-sdk-java.version>
-        <nacos-config-spring-boot-starter.version>0.2.12</nacos-config-spring-boot-starter.version>
-        <apollo-client.version>2.1.0</apollo-client.version>
+        <mysql-connector-java.version>8.0.33</mysql-connector-java.version>
+        <hutool-all.version>5.8.24</hutool-all.version>
+        <guava.version>33.0.0-jre</guava.version>
+        <okhttp.version>4.12.0</okhttp.version>
+        <fastjson.version>2.0.43</fastjson.version>
+        <tencentcloud-sdk-java.version>3.1.900</tencentcloud-sdk-java.version>
+        <nacos-config-spring-boot-starter.version>0.3.0</nacos-config-spring-boot-starter.version>
+        <apollo-client.version>2.3.0</apollo-client.version>
         <log-record-starter.version>1.0.4.1</log-record-starter.version>
         <javax.mail.version>1.6.2</javax.mail.version>
-        <springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.3.0</springdoc-openapi-starter-webmvc-ui.version>
         <logback-gelf.version>3.0.0</logback-gelf.version>
         <xxl-job-core.version>2.3.0</xxl-job-core.version>
         <scala.binary.version>2.11</scala.binary.version>
@@ -60,13 +60,13 @@
         <flink-connector-hive_2.12.version>1.16.0</flink-connector-hive_2.12.version>
         <flink-table-api-java-bridge.version>1.16.0</flink-table-api-java-bridge.version>
         <hive-exec.version>2.3.4</hive-exec.version>
-        <weixin-java>4.5.3.B</weixin-java>
+        <weixin-java>4.6.0</weixin-java>
         <dynamic-tp-spring-boot-starter-apollo.version>1.0.2</dynamic-tp-spring-boot-starter-apollo.version>
         <alipay-sdk-java.version>4.39.19.ALL</alipay-sdk-java.version>
         <alibaba-dingtalk-service-sdk.version>2.0.0</alibaba-dingtalk-service-sdk.version>
-        <rocketmq-spring-boot-starter.version>2.2.2</rocketmq-spring-boot-starter.version>
+        <rocketmq-spring-boot-starter.version>2.3.0</rocketmq-spring-boot-starter.version>
         <hades-nacos-starter.version>1.0.4</hades-nacos-starter.version>
-        <spring-boot-configuration-processor.version>2.5.6</spring-boot-configuration-processor.version>
+        <spring-boot-configuration-processor.version>3.2.0</spring-boot-configuration-processor.version>
     </properties>
 
     <dependencyManagement>
@@ -188,11 +188,11 @@
                 <version>${javax.mail.version}</version>
             </dependency>
 
-            <!--swagger-->
+            <!--springdoc (替代 swagger，因为 springfox 不支持 Spring Boot 3)-->
             <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-boot-starter</artifactId>
-                <version>${springfox-boot-starter.version}</version>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-openapi-starter-webmvc-ui.version}</version>
             </dependency>
 
             <!--graylog-->
