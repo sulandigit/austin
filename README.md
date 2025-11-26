@@ -12,10 +12,10 @@
   <a href="#项目文档"><img src="https://img.shields.io/github/issues-pr/ZhongFuCheng3y/austin" alt="issue-close"></a>
   <a href="#项目文档"><img src="https://img.shields.io/github/issues-pr-closed/ZhongFuCheng3y/austin" alt="issue-close"></a>
   <a href="#项目文档"><img src="https://img.shields.io/github/license/ZhongFuCheng3y/austin" alt="issue-close"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/JDK-8-red.svg" alt="jdk版本"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/SpringBoot-2.5.6-green.svg" alt="SpringBoot版本"></a>
+  <a href="#项目文档"><img src="https://img.shields.io/badge/JDK-21-red.svg" alt="jdk版本"></a>
+  <a href="#项目文档"><img src="https://img.shields.io/badge/SpringBoot-3.2.0-green.svg" alt="SpringBoot版本"></a>
   <a href="#项目文档"><img src="https://img.shields.io/badge/Centos-7.6-blue.svg" alt="Centos版本"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/MySQL-5.7.x-orange.svg" alt="MySQL版本"></a>
+  <a href="#项目文档"><img src="https://img.shields.io/badge/MySQL-8.0.x-orange.svg" alt="MySQL版本"></a>
   <a href="#项目文档"><img src="https://img.shields.io/badge/maven-3.6.x-red.svg" alt="maven版本"></a>
   <a href="#项目文档"><img src="https://img.shields.io/badge/ORM-SpringData JPA-blue.svg" alt="ORM框架"></a>
   <a href="#项目文档"><img src="https://img.shields.io/badge/Cache-Redis-orange.svg" alt="ORM框架"></a>
@@ -102,7 +102,7 @@ austin项目**强依赖**`MySQL`/`Redis`/(**大概需要2G内存**)，**弱依�
 
 > 实在想要`clone`项目后不用自己部署环境直接在**本地**启动`debug`，我这提供了[股东服务](https://www.yuque.com/u1047901/eg5qvy/hh0gk5p4uwie8bva)，**直连**部署好的服务器。
 
-**1**、austin目前使用的MySQL版本**5.7x**，如果你使用的MySQL版本8.0，注意改变`pom.xml`所依赖的版本以及对应的连接信息。
+**1**、austin目前使用的MySQL版本**8.0.x**，如果你使用的MySQL版本5.7，注意改变`pom.xml`所依赖的版本以及对应的连接信息。
 
 **2**、填写[application.properties](austin-web/src/main/resources/application.properties)中`spring.datasource`对应的`ip/port/username/password`信息
 

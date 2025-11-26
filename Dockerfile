@@ -1,5 +1,5 @@
-# 使用openjdk8的镜像
-FROM openjdk:8-jre
+# 使用openjdk21的镜像
+FROM openjdk:21-jdk-slim
 
 ENV PARAMS="--spring.profiles.active=test"
 

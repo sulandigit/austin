@@ -1,6 +1,6 @@
 package com.java3y.austin.handler.deduplication;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.common.enums.AnchorState;
 import lombok.AllArgsConstructor;

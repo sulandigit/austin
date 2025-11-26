@@ -1,7 +1,7 @@
 package com.java3y.austin.cron.handler;
 
 import cn.hutool.core.text.CharSequenceUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.java3y.austin.common.constant.CommonConstant;
 import com.java3y.austin.common.dto.account.GeTuiAccount;
 import com.java3y.austin.common.enums.ChannelType;

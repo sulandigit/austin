@@ -3,7 +3,7 @@ package com.java3y.austin.handler.handler.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.StrPool;
 import cn.hutool.http.HttpUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.google.common.base.Throwables;
 import com.java3y.austin.common.constant.AustinConstant;
 import com.java3y.austin.common.constant.CommonConstant;
