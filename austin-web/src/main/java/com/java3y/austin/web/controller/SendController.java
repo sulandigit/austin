@@ -7,6 +7,7 @@ import com.java3y.austin.service.api.domain.SendResponse;
 import com.java3y.austin.service.api.service.RecallService;
 import com.java3y.austin.service.api.service.SendService;
 import com.java3y.austin.web.annotation.AustinAspect;
+import com.java3y.austin.web.annotation.PreventReplay;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ public class SendController {
      * @return
      */
     @ApiOperation(value = "下发接口", notes = "多渠道多类型下发消息，目前支持邮件和短信，类型支持：验证码、通知类、营销类。")
+    @PreventReplay(timeWindow = 300)
     @PostMapping("/send")
     public SendResponse send(@RequestBody SendRequest sendRequest) {
         return sendService.send(sendRequest);
@@ -49,6 +51,7 @@ public class SendController {
      * @return
      */
     @ApiOperation(value = "batch下发接口", notes = "多渠道多类型下发消息，目前支持邮件和短信，类型支持：验证码、通知类、营销类。")
+    @PreventReplay(timeWindow = 300)
     @PostMapping("/batchSend")
     public SendResponse batchSend(@RequestBody BatchSendRequest batchSendRequest) {
         return sendService.batchSend(batchSendRequest);
