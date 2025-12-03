@@ -10,6 +10,7 @@ import java.util.List;
 
 
 /**
+ * Response of send API
  * 发送接口返回值
  *
  * @author 3y
@@ -20,15 +21,18 @@ import java.util.List;
 @NoArgsConstructor
 public class SendResponse {
     /**
+     * Response status code
      * 响应状态
      */
     private String code;
     /**
+     * Response message
      * 响应编码
      */
     private String msg;
 
     /**
+     * Actual send task list
      * 实际发送任务列表
      */
     private List<SimpleTaskInfo> data;

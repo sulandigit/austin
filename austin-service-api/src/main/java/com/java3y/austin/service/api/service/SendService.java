@@ -5,6 +5,7 @@ import com.java3y.austin.service.api.domain.SendRequest;
 import com.java3y.austin.service.api.domain.SendResponse;
 
 /**
+ * Send service API
  * 发送接口
  *
  * @author 3y
@@ -13,6 +14,7 @@ public interface SendService {
 
 
     /**
+     * Single message send API
      * 单文案发送接口
      *
      * @param sendRequest eg:    {"code":"send","messageParam":{"bizId":null,"extra":null,"receiver":"123@qq.com","variables":null},"messageTemplateId":17,"recallMessageId":null}
@@ -22,6 +24,7 @@ public interface SendService {
 
 
     /**
+     * Batch message send API
      * 多文案发送接口
      *
      * @param batchSendRequest

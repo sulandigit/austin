@@ -3,6 +3,7 @@ package com.java3y.austin.service.api.service;
 import com.java3y.austin.service.api.domain.TraceResponse;
 
 /**
+ * Trace query service API
  * 链路查询接口
  *
  * @Author: sky
@@ -13,6 +14,7 @@ import com.java3y.austin.service.api.domain.TraceResponse;
 public interface TraceService {
 
     /**
+     * Query trace result by message ID
      * 基于消息 ID 查询 链路结果
      *
      * @param messageId
