@@ -37,7 +37,7 @@ public class SendController {
      * @return
      */
     @ApiOperation(value = "下发接口", notes = "多渠道多类型下发消息，目前支持邮件和短信，类型支持：验证码、通知类、营销类。")
-    @PostMapping("/send")
+    @PostMapping({"/send", "/api/v1/send", "/api/v2/send"})
     public SendResponse send(@RequestBody SendRequest sendRequest) {
         return sendService.send(sendRequest);
     }
@@ -49,7 +49,7 @@ public class SendController {
      * @return
      */
     @ApiOperation(value = "batch下发接口", notes = "多渠道多类型下发消息，目前支持邮件和短信，类型支持：验证码、通知类、营销类。")
-    @PostMapping("/batchSend")
+    @PostMapping({"/batchSend", "/api/v1/batchSend", "/api/v2/batchSend"})
     public SendResponse batchSend(@RequestBody BatchSendRequest batchSendRequest) {
         return sendService.batchSend(batchSendRequest);
     }
@@ -61,7 +61,7 @@ public class SendController {
      * @return
      */
     @ApiOperation(value = "撤回消息接口", notes = "优先根据messageId撤回消息，如果messageId不存在则根据模板id撤回")
-    @PostMapping("/recall")
+    @PostMapping({"/recall", "/api/v1/recall", "/api/v2/recall"})
     public SendResponse recall(@RequestBody SendRequest sendRequest) {
         return recallService.recall(sendRequest);
     }
