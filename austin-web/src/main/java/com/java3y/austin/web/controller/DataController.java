@@ -30,13 +30,12 @@ import java.util.Objects;
 @AustinAspect
 @AustinResult
 @RestController
-@RequestMapping("/trace")
 @Api("获取数据接口（全链路追踪)")
 public class DataController {
     @Autowired
     private DataService dataService;
 
-    @PostMapping("/message")
+    @PostMapping({"/message", "/trace/message", "/api/v1/trace/message", "/api/v2/trace/message"})
     @ApiOperation("/获取【72小时】发送消息的全链路数据")
     public UserTimeLineVo getMessageData(@RequestBody DataParam dataParam) {
         if (Objects.isNull(dataParam) || CharSequenceUtil.isBlank(dataParam.getMessageId())) {
@@ -45,7 +44,7 @@ public class DataController {
         return dataService.getTraceMessageInfo(dataParam.getMessageId());
     }
 
-    @PostMapping("/user")
+    @PostMapping({"/user", "/trace/user", "/api/v1/trace/user", "/api/v2/trace/user"})
     @ApiOperation("/获取【当天】用户接收消息的全链路数据")
     public UserTimeLineVo getUserData(@RequestBody DataParam dataParam) {
         if (Objects.isNull(dataParam) || CharSequenceUtil.isBlank(dataParam.getReceiver())) {
@@ -54,7 +53,7 @@ public class DataController {
         return dataService.getTraceUserInfo(dataParam.getReceiver());
     }
 
-    @PostMapping("/messageTemplate")
+    @PostMapping({"/messageTemplate", "/trace/messageTemplate", "/api/v1/trace/messageTemplate", "/api/v2/trace/messageTemplate"})
     @ApiOperation("/获取消息模板全链路数据")
     public EchartsVo getMessageTemplateData(@RequestBody DataParam dataParam) {
         EchartsVo echartsVo = EchartsVo.builder().build();
@@ -64,7 +63,7 @@ public class DataController {
         return echartsVo;
     }
 
-    @PostMapping("/sms")
+    @PostMapping({"/sms", "/trace/sms", "/api/v1/trace/sms", "/api/v2/trace/sms"})
     @ApiOperation("/获取短信下发数据")
     public SmsTimeLineVo getSmsData(@RequestBody DataParam dataParam) {
         if (Objects.isNull(dataParam) || Objects.isNull(dataParam.getDateTime()) || CharSequenceUtil.isBlank(dataParam.getReceiver())) {
