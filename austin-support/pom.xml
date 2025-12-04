@@ -127,6 +127,18 @@
             <groupId>io.github.ZhongFuCheng3y</groupId>
             <artifactId>hades-nacos-starter</artifactId>
         </dependency>
+
+        <!--Sentinel 核心库-->
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-core</artifactId>
+        </dependency>
+
+        <!--Sentinel Nacos 数据源-->
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-datasource-nacos</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

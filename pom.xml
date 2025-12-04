@@ -67,6 +67,7 @@
         <rocketmq-spring-boot-starter.version>2.2.2</rocketmq-spring-boot-starter.version>
         <hades-nacos-starter.version>1.0.4</hades-nacos-starter.version>
         <spring-boot-configuration-processor.version>2.5.6</spring-boot-configuration-processor.version>
+        <sentinel.version>1.8.6</sentinel.version>
     </properties>
 
     <dependencyManagement>
@@ -311,6 +312,41 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-configuration-processor</artifactId>
                 <version>${spring-boot-configuration-processor.version}</version>
+            </dependency>
+
+            <!--Sentinel 核心库-->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-core</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+
+            <!--Sentinel Web Servlet 支持-->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-web-servlet</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+
+            <!--Sentinel 注解支持-->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-annotation-aspectj</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+
+            <!--Sentinel Nacos 数据源-->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-datasource-nacos</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+
+            <!--Sentinel Transport-->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-transport-simple-http</artifactId>
+                <version>${sentinel.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
