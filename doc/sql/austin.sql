@@ -68,3 +68,21 @@ CREATE TABLE IF NOT EXISTS `channel_account`
     KEY `idx_send_channel` (`send_channel`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='渠道账号信息';
+
+CREATE TABLE IF NOT EXISTS `app_info`
+(
+    `app_id`             VARCHAR(64)   NOT NULL COMMENT '应用ID（唯一标识）',
+    `app_name`           VARCHAR(100)  NOT NULL DEFAULT '' COMMENT '应用名称',
+    `app_secret`         VARCHAR(256)  NOT NULL DEFAULT '' COMMENT '签名密钥',
+    `status`             TINYINT(4)    NOT NULL DEFAULT '1' COMMENT '应用状态：0-禁用 1-启用',
+    `sign_version`       VARCHAR(10)   NOT NULL DEFAULT 'v1' COMMENT '签名算法版本',
+    `allowed_ips`        VARCHAR(500)           DEFAULT NULL COMMENT '允许访问的IP列表（逗号分隔）',
+    `signature_enabled`  TINYINT(4)    NOT NULL DEFAULT '0' COMMENT '是否强制启用签名验证：0-不启用 1-启用',
+    `remark`             VARCHAR(500)           DEFAULT NULL COMMENT '备注信息',
+    `created`            INT(11)       NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `updated`            INT(11)       NOT NULL DEFAULT '0' COMMENT '更新时间',
+    `is_deleted`         TINYINT(4)    NOT NULL DEFAULT '0' COMMENT '是否删除：0-未删除 1-已删除',
+    PRIMARY KEY (`app_id`),
+    KEY `idx_status` (`status`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='应用信息表（用于签名验证）';
