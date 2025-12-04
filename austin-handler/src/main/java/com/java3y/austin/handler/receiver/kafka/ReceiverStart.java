@@ -13,7 +13,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListenerAnnotationBeanPostProcessor;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.util.backoff.ExponentialBackOffWithMaxRetries;
 
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
@@ -48,6 +52,8 @@ public class ReceiverStart {
     private ApplicationContext context;
     @Autowired
     private ConsumerFactory consumerFactory;
+    @Autowired
+    private KafkaTemplate kafkaTemplate;
 
     /**
      * 给每个Receiver对象的consumer方法 @KafkaListener赋值相应的groupId
@@ -99,6 +105,16 @@ public class ReceiverStart {
             }
             return true;
         });
+
+        // 错误处理：指数退避，初始1秒，系数1.5，最大30秒；最多重试5次；失败消息发布到DLQ(<topic>.DLT)
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
+        ExponentialBackOffWithMaxRetries backOff = new ExponentialBackOffWithMaxRetries(5);
+        backOff.setInitialInterval(1000L);
+        backOff.setMultiplier(1.5);
+        backOff.setMaxInterval(30000L);
+        SeekToCurrentErrorHandler errorHandler = new SeekToCurrentErrorHandler(recoverer, backOff);
+        factory.setErrorHandler(errorHandler);
+
         return factory;
     }
 }
