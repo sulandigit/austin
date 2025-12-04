@@ -52,6 +52,17 @@ public enum RespStatusEnum {
     PROCESS_TEMPLATE_IS_NULL("P0003", "流程模板配置为空"),
     PROCESS_LIST_IS_NULL("P0004", "业务处理器配置为空"),
 
+    /**
+     * 签名验证
+     */
+    SIGNATURE_PARAM_MISSING("S0001", "签名参数缺失"),
+    SIGNATURE_PARAM_INVALID("S0002", "签名参数格式错误"),
+    SIGNATURE_APP_NOT_FOUND("S0003", "应用不存在或已被禁用"),
+    SIGNATURE_TIMESTAMP_EXPIRED("S0004", "请求已超时"),
+    SIGNATURE_REPLAY_ATTACK("S0005", "检测到重放攻击"),
+    SIGNATURE_VERIFY_FAILED("S0006", "签名验证失败"),
+    SIGNATURE_VERSION_NOT_SUPPORT("S0007", "签名版本不支持"),
+
 
     ;
 
