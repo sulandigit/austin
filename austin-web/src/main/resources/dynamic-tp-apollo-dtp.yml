@@ -28,6 +28,35 @@ spring:
           keepAliveTime: 50
           allowCoreThreadTimeOut: false
           threadNamePrefix: austin-           # 线程名前缀
+          notifyItems: # 报警项，不配置自动会配置（变更通知、容量报警、活性报警、拒绝报警）
+            - type: capacity               # 容量报警：队列使用率超过阈值时报警
+              enabled: true
+              threshold: 80                # 报警阈值
+              platforms: [ding,wechat]     # 可选配置，不配置默认拿上层platforms配置的所以平台
+              interval: 120                # 报警间隔（单位：s）
+            - type: change                 # 变更通知：线程池配置变更时通知
+              enabled: true
+              platforms: [ding,wechat]
+            - type: liveness               # 活性报警：线程池活跃度超过阈值时报警
+              enabled: true
+              threshold: 80
+              platforms: [ding,wechat]
+              interval: 120
+            - type: reject                 # 拒绝报警：任务被拒绝时报警
+              enabled: true
+              threshold: 1
+              platforms: [ding,wechat]
+              interval: 120
+            - type: run_timeout            # 运行超时报警
+              enabled: true
+              threshold: 5000              # 运行超时时间（单位：ms）
+              platforms: [ding,wechat]
+              interval: 120
+            - type: queue_timeout          # 队列等待超时报警
+              enabled: true
+              threshold: 2000              # 队列等待超时时间（单位：ms）
+              platforms: [ding,wechat]
+              interval: 120
         - threadPoolName: execute-xxl-thread-pool
           corePoolSize: 3
           maximumPoolSize: 3
@@ -38,16 +67,21 @@ spring:
           allowCoreThreadTimeOut: false
           threadNamePrefix: austin-           # 线程名前缀
           notifyItems: # 报警项，不配置自动会配置（变更通知、容量报警、活性报警、拒绝报警）
-            - type: capacity               # 报警项类型，查看源码 NotifyTypeEnum枚举类
+            - type: capacity               # 容量报警：队列使用率超过阈值时报警
               enabled: true
               threshold: 80                # 报警阈值
               platforms: [ding,wechat]     # 可选配置，不配置默认拿上层platforms配置的所以平台
               interval: 120                # 报警间隔（单位：s）
-            - type: change
+            - type: change                 # 变更通知：线程池配置变更时通知
               enabled: true
-            - type: liveness
+              platforms: [ding,wechat]
+            - type: liveness               # 活性报警：线程池活跃度超过阈值时报警
               enabled: true
               threshold: 80
-            - type: reject
+              platforms: [ding,wechat]
+              interval: 120
+            - type: reject                 # 拒绝报警：任务被拒绝时报警
               enabled: true
               threshold: 1
+              platforms: [ding,wechat]
+              interval: 120
