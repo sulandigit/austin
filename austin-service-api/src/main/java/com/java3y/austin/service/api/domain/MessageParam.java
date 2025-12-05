@@ -45,4 +45,11 @@ public class MessageParam {
      * 可选
      */
     private Map<String, String> extra;
+
+    /**
+     * 请求唯一标识ID，用于幂等性控制
+     * 格式建议：业务前缀-时间戳-随机数，如 ORDER-20231201120000-ABC123
+     * 可选，不传则系统自动根据请求参数生成MD5作为幂等标识
+     */
+    private String requestId;
 }

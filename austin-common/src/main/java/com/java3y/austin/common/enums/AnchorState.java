@@ -21,6 +21,14 @@ public enum AnchorState implements PowerfulEnum {
      */
     RECEIVE(10, "消息接收成功"),
     /**
+     * 幂等性检查通过（首次请求）
+     */
+    IDEMPOTENCY_CHECK_SUCCESS(12, "幂等性检查通过"),
+    /**
+     * 幂等性拦截（重复请求）
+     */
+    IDEMPOTENCY_INTERCEPT(14, "幂等性拦截"),
+    /**
      * 消息被丢弃（从Kafka消费后，被丢弃）
      */
     DISCARD(20, "消费被丢弃"),

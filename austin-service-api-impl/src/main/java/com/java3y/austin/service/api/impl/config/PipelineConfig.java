@@ -10,6 +10,7 @@ import com.java3y.austin.service.api.impl.action.send.SendAfterCheckAction;
 import com.java3y.austin.service.api.impl.action.send.SendAssembleAction;
 import com.java3y.austin.service.api.impl.action.send.SendMqAction;
 import com.java3y.austin.service.api.impl.action.send.SendPreCheckAction;
+import com.java3y.austin.service.api.impl.action.send.IdempotencyAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,8 @@ public class PipelineConfig {
     private SendAfterCheckAction sendAfterCheckAction;
     @Autowired
     private SendMqAction sendMqAction;
+    @Autowired
+    private IdempotencyAction idempotencyAction;
 
     @Autowired
     private RecallAssembleAction recallAssembleAction;
@@ -43,17 +46,18 @@ public class PipelineConfig {
 
     /**
      * 普通发送执行流程
-     * 1. 前置参数校验
-     * 2. 组装参数
-     * 3. 后置参数校验
-     * 4. 发送消息至MQ
+     * 1. 幂等性检查
+     * 2. 前置参数校验
+     * 3. 组装参数
+     * 4. 后置参数校验
+     * 5. 发送消息至MQ
      *
      * @return
      */
     @Bean("commonSendTemplate")
     public ProcessTemplate commonSendTemplate() {
         ProcessTemplate processTemplate = new ProcessTemplate();
-        processTemplate.setProcessList(Arrays.asList(sendPreCheckAction, sendAssembleAction,
+        processTemplate.setProcessList(Arrays.asList(idempotencyAction, sendPreCheckAction, sendAssembleAction,
                 sendAfterCheckAction, sendMqAction));
         return processTemplate;
     }
