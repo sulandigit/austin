@@ -36,6 +36,7 @@ public enum RespStatusEnum {
     TOO_MANY_RECEIVER("A0003", "传入的接收者大于100个"),
     DO_NOT_NEED_LOGIN("A0004", "非测试环境，无须登录"),
     NO_LOGIN("A0005", "还未登录，请先登录"),
+    IDEMPOTENT("A0006", "该请求已处理，幂等性拦截"),
 
     /**
      * 系统
