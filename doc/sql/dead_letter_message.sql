@@ -1,0 +1,26 @@
+-- 死信消息记录表
+CREATE TABLE IF NOT EXISTS `dead_letter_message` (
+    `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `message_type` VARCHAR(20) NOT NULL COMMENT '消息类型: SEND / RECALL',
+    `message_content` TEXT COMMENT '消息内容',
+    `business_id` BIGINT(20) DEFAULT NULL COMMENT '业务ID',
+    `message_template_id` BIGINT(20) DEFAULT NULL COMMENT '消息模板ID',
+    `dead_letter_reason` VARCHAR(500) DEFAULT NULL COMMENT '死信原因',
+    `retry_count` INT(11) DEFAULT 0 COMMENT '重试次数',
+    `original_exchange` VARCHAR(100) DEFAULT NULL COMMENT '原始交换机',
+    `original_routing_key` VARCHAR(100) DEFAULT NULL COMMENT '原始路由键',
+    `message_id` VARCHAR(100) DEFAULT NULL COMMENT '消息ID',
+    `correlation_id` VARCHAR(100) DEFAULT NULL COMMENT '关联ID',
+    `handle_status` INT(11) DEFAULT 0 COMMENT '处理状态: 0-未处理, 1-已处理, 2-处理失败',
+    `handle_result` VARCHAR(500) DEFAULT NULL COMMENT '处理结果',
+    `handle_time` DATETIME DEFAULT NULL COMMENT '处理时间',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `extra_info` TEXT COMMENT '扩展字段（JSON格式）',
+    PRIMARY KEY (`id`),
+    KEY `idx_message_type` (`message_type`),
+    KEY `idx_business_id` (`business_id`),
+    KEY `idx_message_template_id` (`message_template_id`),
+    KEY `idx_handle_status` (`handle_status`),
+    KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='死信消息记录表';

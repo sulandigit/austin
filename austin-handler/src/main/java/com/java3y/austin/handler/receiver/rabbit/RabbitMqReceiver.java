@@ -6,6 +6,7 @@ import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.handler.receiver.MessageReceiver;
 import com.java3y.austin.handler.receiver.service.ConsumeService;
 import com.java3y.austin.support.constans.MessageQueuePipeline;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.core.Message;
@@ -25,6 +26,7 @@ import java.util.List;
  * @author xzcawl
  * @date 23-04-21 10:53:32
  */
+@Slf4j
 @Component
 @ConditionalOnProperty(name = "austin.mq.pipeline", havingValue = MessageQueuePipeline.RABBIT_MQ)
 public class RabbitMqReceiver implements MessageReceiver {
@@ -38,14 +40,22 @@ public class RabbitMqReceiver implements MessageReceiver {
             key = "${austin.rabbitmq.routing.send}"
     ))
     public void send(Message message) {
-        byte[] body = message.getBody();
-        String messageContent = new String(body, StandardCharsets.UTF_8);
-        if (StringUtils.isBlank(messageContent)) {
-            return;
+        try {
+            byte[] body = message.getBody();
+            String messageContent = new String(body, StandardCharsets.UTF_8);
+            if (StringUtils.isBlank(messageContent)) {
+                log.warn("收到空消息，跳过处理");
+                return;
+            }
+            // 处理发送消息
+            List<TaskInfo> taskInfoLists = JSON.parseArray(messageContent, TaskInfo.class);
+            consumeService.consume2Send(taskInfoLists);
+            
+        } catch (Exception e) {
+            log.error("处理发送消息失败，消息将进入死信队列", e);
+            // 抛出异常，让消息进入死信队列
+            throw new RuntimeException("消息处理失败: " + e.getMessage(), e);
         }
-        // 处理发送消息
-        List<TaskInfo> taskInfoLists = JSON.parseArray(messageContent, TaskInfo.class);
-        consumeService.consume2Send(taskInfoLists);
     }
 
     @RabbitListener(bindings = @QueueBinding(
@@ -54,14 +64,22 @@ public class RabbitMqReceiver implements MessageReceiver {
             key = "${austin.rabbitmq.routing.recall}"
     ))
     public void recall(Message message) {
-        byte[] body = message.getBody();
-        String messageContent = new String(body, StandardCharsets.UTF_8);
-        if (StringUtils.isBlank(messageContent)) {
-            return;
+        try {
+            byte[] body = message.getBody();
+            String messageContent = new String(body, StandardCharsets.UTF_8);
+            if (StringUtils.isBlank(messageContent)) {
+                log.warn("收到空消息，跳过处理");
+                return;
+            }
+            // 处理撤回消息
+            RecallTaskInfo recallTaskInfo = JSON.parseObject(messageContent, RecallTaskInfo.class);
+            consumeService.consume2recall(recallTaskInfo);
+            
+        } catch (Exception e) {
+            log.error("处理撤回消息失败，消息将进入死信队列", e);
+            // 抛出异常，让消息进入死信队列
+            throw new RuntimeException("消息处理失败: " + e.getMessage(), e);
         }
-        // 处理撤回消息
-        RecallTaskInfo recallTaskInfo = JSON.parseObject(messageContent, RecallTaskInfo.class);
-        consumeService.consume2recall(recallTaskInfo);
     }
 
 }
